@@ -48,11 +48,11 @@
 
 ## Team Commitments
 
-✓ Respect each other's time and expertise  
-✓ Communicate openly about challenges  
-✓ Support team members when needed  
-✓ Take ownership of assigned tasks  
-✓ Maintain a positive, collaborative environment  
+- Respect each other's time and expertise  
+- Communicate openly about challenges  
+- Support team members when needed  
+- Take ownership of assigned tasks  
+- Maintain a positive, collaborative environment  
 
 ---
 
@@ -64,4 +64,4 @@ Ahmad Syed
 
 Vivek Wasisht
 
-Vansh Khattrha
+Vanshdeep Kaur Khattrha
