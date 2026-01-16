@@ -43,7 +43,7 @@ Development is conducted using **Visual Studio Code**, a powerful and versatile 
 **Atlassian** (Jira) is utilized to create, organize, and track progress throughout the development workflow.  This includes sprint planning, task assignments, and progress monitoring to ensure the project stays on schedule.
 
 ### Team Communication
-**Microsoft Teams** serves as the primary communication platform for team collaboration, enabling real-time discussions, file sharing, and coordination among team members throughout the development process.
+**Discord & MS Teams** serve as the primary communication platform for team collaboration, enabling real-time discussions, file sharing, and coordination among team members throughout the development process.
 
 ---
 
