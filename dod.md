@@ -20,6 +20,19 @@ A sprint is considered "Done" when:
 - Any known issues documented in the repository
 - Demo-ready for stakeholders (if applicable)
 
+### Testing
+
+ - The feature has been tested locally in WordPress environment.
+ - Edge cases and user scenarios have been considered.
+ - No existing functionality is broken by the new changes.
+ - Forms and user inputs are validated appropriately.
+
+### Security & Compliance
+ - User data handling follows privacy best practices.
+ - Input validation and sanitization are implemented.
+ - BlueHost security configurations are maintained.
+ - No sensitive credentials or data are committed to the repository.
+
 ## For Project Milestones
 
 A milestone is considered "Done" when:
