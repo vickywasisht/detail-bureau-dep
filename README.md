@@ -15,7 +15,7 @@ Detail Bureau is an end-to-end management system designed for car detailing comp
 ### Key Features
 
 **Customer Funnel System**
-The website features an intelligent front-end system that guides customers through a self-service diagnostic and recommendation process. Instead of relying on traditional direct messaging for service recommendations, customers can navigate through the platform to determine their detailing needs independently.  This automated approach saves time for both customers and business owners while ensuring consistent service recommendations.
+The website features an intelligent front-end system that funnels customer traffic through a self-service diagnostic and recommendation process. Instead of relying on traditional direct messaging for service recommendations, customers can navigate through the platform to determine their detailing needs independently.  This automated approach saves time for both customers and business owners while ensuring consistent service recommendations.
 
 **Business Management Tools**
 Detail Bureau provides company owners with a complete management solution that includes:
@@ -40,7 +40,7 @@ Development is conducted using **Visual Studio Code**, a powerful and versatile 
 ## Development Tools
 
 ### Project Management
-**Atlassian** (Jira) is utilized to create, organize, and track progress throughout the development workflow.  This includes sprint planning, task assignments, and progress monitoring to ensure the project stays on schedule.
+**Github** is utilized to create, organize, and track progress throughout the development workflow.  This includes sprint planning, task assignments, and progress monitoring to ensure the project stays on schedule.
 
 ### Team Communication
 **Discord & MS Teams** serve as the primary communication platform for team collaboration, enabling real-time discussions, file sharing, and coordination among team members throughout the development process.
