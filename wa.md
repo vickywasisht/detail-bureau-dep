@@ -16,8 +16,7 @@
 - WordPress (CMS)
 - BlueHost (Hosting & Security)
 - Visual Studio Code (Development)
-- Jira (Project Management)
-- GitHub (Version Control)
+- GitHub (Project Management and Version Control)
 
 **Code Management:**
 - All code changes must be pushed to GitHub
@@ -26,7 +25,7 @@
 - Write clear commit messages
 
 **Task Management:**
-- Track all tasks in Jira
+- Track all tasks in Github Project
 - Update task status daily
 - Participate in sprint planning and retrospectives
 - Flag blockers immediately
