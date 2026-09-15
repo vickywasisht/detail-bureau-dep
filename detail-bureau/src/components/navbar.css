@@ -77,118 +77,38 @@
   background: #000000;
 }
 
-.menu-toggle,
-.menu-close {
-  display: none;
-  border: 0;
-  background: transparent;
-  color: currentColor;
-  cursor: pointer;
-}
-
-.menu-toggle {
-  flex-direction: column;
-  gap: 5px;
-  padding: 0.5rem;
-}
-
-.menu-toggle span {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: currentColor;
-}
-
-.menu-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-}
-
-.menu-close span {
-  position: absolute;
-  top: 15px;
-  left: 4px;
-  width: 24px;
-  height: 2px;
-  background: currentColor;
-}
-
-.menu-close span:first-child {
-  transform: rotate(45deg);
-}
-
-.menu-close span:last-child {
-  transform: rotate(-45deg);
-}
-
 @media (max-width: 767px) {
   .site-header__inner {
+    align-items: flex-start;
+    flex-direction: column;
     width: min(100% - 2rem, 1440px);
     min-height: 72px;
   }
 
   .site-header__actions {
-    gap: 0.75rem;
-  }
-
-  .header-secondary-link {
-    display: none;
-  }
-
-  .menu-toggle {
-    display: flex;
-  }
-
-  .site-navigation__panel {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
     align-items: flex-start;
-    justify-content: center;
-    padding: 5rem 2rem 2rem;
-    background: #ffffff;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-0.5rem);
-    transition:
-      opacity 160ms ease,
-      visibility 160ms ease,
-      transform 160ms ease;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
   }
 
-  .site-navigation--open .site-navigation__panel {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-
-  .site-navigation--open .menu-close {
-    display: block;
+  .site-navigation,
+  .header-secondary-link {
+    width: 100%;
   }
 
   .site-navigation__list {
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
     width: 100%;
   }
 
   .site-navigation__link {
-    font-size: 1.25rem;
-  }
-
-  body.menu-is-open {
-    overflow: hidden;
+    font-size: 0.9rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site-navigation__panel,
   .site-navigation__link,
   .header-secondary-link {
     transition: none;
