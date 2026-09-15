@@ -1,5 +1,6 @@
 import Image from "next/image";
-
+//Vicky
+//if you wanna add a navbar add it in the components
 export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
