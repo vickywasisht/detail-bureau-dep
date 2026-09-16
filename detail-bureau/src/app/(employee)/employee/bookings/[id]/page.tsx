@@ -1,0 +1,184 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+
+interface BookingDetail {
+  id: string
+  package_slug: string
+  package_label: string
+  service_date: string
+  dropoff_time: string
+  duration_hours?: string
+  quoted_price?: number
+  final_price?: number
+  special_notes?: string
+  booking_status: string
+  vehicles?: {
+    year: string
+    make: string
+    model: string
+    vehicle_type: string
+    color?: string
+  }
+  customers?: {
+    first_name: string
+    last_name: string
+    email: string
+    phone?: string
+  }
+}
+
+const STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+}
+
+export default function EmployeeBookingDetailPage() {
+  const { id } = useParams()
+  const [booking, setBooking] = useState<BookingDetail | null>(null)
+  const [status, setStatus] = useState('')
+  const [finalPrice, setFinalPrice] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch(`/api/employee/bookings/${id}`)
+      .then(r => r.json())
+      .then((data: BookingDetail) => {
+        setBooking(data)
+        setStatus(data.booking_status)
+        setFinalPrice(data.final_price ? String(data.final_price) : '')
+      })
+  }, [id])
+
+  const handleSave = async () => {
+    setSaving(true)
+    const res = await fetch(`/api/employee/bookings/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        booking_status: status,
+        final_price: finalPrice ? Number(finalPrice) : undefined,
+      }),
+    })
+    if (res.ok) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    }
+    setSaving(false)
+  }
+
+  if (!booking) return (
+    <div className="flex items-center justify-center py-20">
+      <p className="text-gray-500">Loading...</p>
+    </div>
+  )
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-6">
+        <Link href="/employee/bookings" className="text-gray-400 hover:text-white text-sm">
+          ← All Bookings
+        </Link>
+        <h1 className="text-2xl font-semibold text-white mt-3">Booking Details</h1>
+      </div>
+
+      <div className="space-y-4">
+        {/* Customer */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Customer</h2>
+          <p className="text-white">{booking.customers?.first_name} {booking.customers?.last_name}</p>
+          <p className="text-gray-400 text-sm">{booking.customers?.email}</p>
+          {booking.customers?.phone && (
+            <p className="text-gray-400 text-sm">{booking.customers.phone}</p>
+          )}
+        </div>
+
+        {/* Vehicle */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Vehicle</h2>
+          <p className="text-white">
+            {booking.vehicles?.year} {booking.vehicles?.make} {booking.vehicles?.model}
+          </p>
+          <p className="text-gray-400 text-sm">
+            {booking.vehicles?.vehicle_type}
+            {booking.vehicles?.color ? ` · ${booking.vehicles.color}` : ''}
+          </p>
+        </div>
+
+        {/* Service */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Service</h2>
+          <div className="space-y-2 text-sm">
+            {[
+              ['Package', booking.package_label],
+              ['Date', new Date(booking.service_date).toLocaleDateString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+              })],
+              ['Drop-off time', booking.dropoff_time],
+              ['Est. duration', booking.duration_hours ? `${booking.duration_hours} hours` : '—'],
+              ['Quoted price', `$${Number(booking.quoted_price).toFixed(2)}`],
+            ].map(([label, value]) => (
+              <div key={label} className="flex justify-between">
+                <span className="text-gray-500">{label}</span>
+                <span className="text-gray-200">{value}</span>
+              </div>
+            ))}
+          </div>
+          {booking.special_notes && (
+            <div className="mt-3 pt-3 border-t border-gray-800">
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Customer notes</p>
+              <p className="text-gray-300 text-sm">{booking.special_notes}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Update booking */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Update Booking</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Status</label>
+              <select
+                value={status}
+                onChange={e => setStatus(e.target.value)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              >
+                {STATUSES.map(s => (
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Final Price (optional)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <input
+                  type="number"
+                  value={finalPrice}
+                  onChange={e => setFinalPrice(e.target.value)}
+                  placeholder={String(booking.quoted_price ?? '')}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-7 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+            >
+              {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

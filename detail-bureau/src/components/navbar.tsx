@@ -1,19 +1,41 @@
-//insert code here
-import Link from "next/link";
-import "./navbar.css";
+'use client'
 
-const navLinks = [
-  { label: "About", href: "/about/" },
-  { label: "FAQs", href: "/faqs/" },
-  { label: "Pricing", href: "/packages/" },
-  { label: "Gallery", href: "/gallery/" },
-  { label: "Register", href: "/register/" },
-  { label: "Logout", href: "/logout/" },
-  { label: "Login", href: "/login/" },
-  { label: "User", href: "/user/" },
-];
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import './navbar.css'
 
 export default function Navbar() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const supabase = createClient()
+  const [user, setUser] = useState<null | { email: string }>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ? { email: data.user.email ?? '' } : null)
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? { email: session.user.email ?? '' } : null)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }
+
+  const publicLinks = [
+    { label: 'About', href: '/about' },
+    { label: 'Packages', href: '/packages' },
+    { label: 'Gallery', href: '/gallery' },
+    { label: 'FAQs', href: '/faqs' },
+  ]
+
   return (
     <header className="site-header">
       <div className="site-header__inner">
@@ -24,21 +46,37 @@ export default function Navbar() {
         <div className="site-header__actions">
           <nav className="site-navigation" aria-label="Main navigation">
             <ul className="site-navigation__list">
-              {navLinks.map((link) => (
+              {publicLinks.map(link => (
                 <li className="site-navigation__item" key={link.href}>
-                  <a className="site-navigation__link" href={link.href}>
+                  <Link
+                    className={`site-navigation__link ${pathname === link.href ? 'active' : ''}`}
+                    href={link.href}
+                  >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
+              {user && (
+                <li className="site-navigation__item">
+                  <Link className="site-navigation__link" href="/dashboard">
+                    My Vehicles
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
 
-          <a className="header-secondary-link" href="/learn-more/">
-            Learn More
-          </a>
+          {user ? (
+            <button className="header-secondary-link" onClick={handleSignOut}>
+              Sign Out
+            </button>
+          ) : (
+            <Link className="header-secondary-link" href="/login">
+              Sign In
+            </Link>
+          )}
         </div>
       </div>
     </header>
-  );
+  )
 }
