@@ -13,7 +13,7 @@ export default function EmployeeNav({ employee }: Props) {
 
     const handleSignOut = async () => {
         await fetch('/api/auth/employee/logout', { method: 'POST' })
-        router.push('/employee/login')
+        router.push('/employee-login')
         router.refresh()
     }
 

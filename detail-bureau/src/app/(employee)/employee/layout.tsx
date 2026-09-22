@@ -8,8 +8,8 @@ export default async function EmployeeLayout({
   children: React.ReactNode
 }) {
   const employee = await getEmployeeFromToken()
-  if (!employee) redirect('/employee/login')
-
+  if (!employee) redirect('/employee-login')
+    
   return (
     <div className="min-h-screen bg-gray-950">
       <EmployeeNav employee={employee} />
