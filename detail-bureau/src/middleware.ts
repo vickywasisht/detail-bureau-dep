@@ -33,12 +33,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Employee route protection (JWT cookie check)
-  if (path.startsWith('/employee') && !path.startsWith('/employee/login')) {
-    const employeeToken = request.cookies.get('employee_token')
-    if (!employeeToken) {
-      return NextResponse.redirect(new URL('/employee/login', request.url))
-    }
+if (path.startsWith('/employee') && !path.startsWith('/employee-login')) {
+  const employeeToken = request.cookies.get('employee_token')
+  if (!employeeToken) {
+    return NextResponse.redirect(new URL('/employee-login', request.url))
   }
+}
 
   return supabaseResponse
 }

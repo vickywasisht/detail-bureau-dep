@@ -2,7 +2,11 @@ import { redirect } from 'next/navigation'
 import { getEmployeeFromToken } from '@/lib/employee-auth'
 import EmployeeNav from '@/components/EmployeeNav'
 
-export default async function EmployeeLayout({ children }: { children: React.ReactNode }) {
+export default async function EmployeeLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const employee = await getEmployeeFromToken()
   if (!employee) redirect('/employee/login')
 

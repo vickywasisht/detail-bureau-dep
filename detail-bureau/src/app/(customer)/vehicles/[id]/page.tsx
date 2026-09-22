@@ -11,8 +11,11 @@ const STATUS_STYLES: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed',
-  in_progress: 'In Progress', completed: 'Completed', cancelled: 'Cancelled',
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
 }
 
 const PACKAGE_LABELS: Record<string, string> = {
@@ -21,7 +24,26 @@ const PACKAGE_LABELS: Record<string, string> = {
   premium: 'Premium – Ultimate Protection',
 }
 
-export default async function VehicleDetailPage({ params }: { params: { id: string } }) {
+interface Booking {
+  id: string
+  package_slug: string
+  package_label: string
+  service_date: string
+  dropoff_time: string
+  duration_hours?: string
+  quoted_price?: number
+  final_price?: number
+  special_notes?: string
+  booking_status: string
+  employee_id?: string
+}
+
+export default async function VehicleDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -29,7 +51,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
   const { data: vehicle } = await supabase
     .from('vehicles')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('customer_id', user.id)
     .single()
 
@@ -38,14 +60,16 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
   const { data: bookings } = await supabase
     .from('bookings')
     .select('*')
-    .eq('vehicle_id', params.id)
+    .eq('vehicle_id', id)
     .order('service_date', { ascending: false })
 
-  const scheduled = bookings?.filter(b =>
+  const scheduled = (bookings ?? []).filter((b: Booking) =>
     ['pending', 'confirmed', 'in_progress'].includes(b.booking_status)
-  ) ?? []
+  )
 
-  const history = bookings?.filter(b => b.booking_status === 'completed') ?? []
+  const history = (bookings ?? []).filter((b: Booking) =>
+    b.booking_status === 'completed'
+  )
 
   return (
     <div>
@@ -58,7 +82,9 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
             <h1 className="text-2xl font-semibold text-white">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
-            <p className="text-gray-400 text-sm mt-1">{vehicle.vehicle_type}{vehicle.color ? ` · ${vehicle.color}` : ''}</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {vehicle.vehicle_type}{vehicle.color ? ` · ${vehicle.color}` : ''}
+            </p>
           </div>
           <Link
             href={`/book-service?vehicle_id=${vehicle.id}`}
@@ -76,7 +102,7 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
         </h2>
         {scheduled.length > 0 ? (
           <div className="space-y-3">
-            {scheduled.map(booking => (
+            {scheduled.map((booking: Booking) => (
               <div key={booking.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-white font-medium">
@@ -89,9 +115,17 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
                   {/* ------------------------------------------------------ */}
                 </div>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                  <span>📅 {new Date(booking.service_date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })} at {booking.dropoff_time}</span>
-                  {booking.duration_hours && <span>⏱ {booking.duration_hours} hrs est.</span>}
-                  {booking.quoted_price && <span>💰 ${Number(booking.quoted_price).toFixed(2)} quoted</span>}
+                  <span>
+                    📅 {new Date(booking.service_date).toLocaleDateString('en-US', {
+                      weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
+                    })} at {booking.dropoff_time}
+                  </span>
+                  {booking.duration_hours && (
+                    <span>⏱ {booking.duration_hours} hrs est.</span>
+                  )}
+                  {booking.quoted_price && (
+                    <span>💰 ${Number(booking.quoted_price).toFixed(2)} quoted</span>
+                  )}
                 </div>
                 {booking.special_notes && (
                   <p className="text-gray-500 text-sm mt-3 border-t border-gray-800 pt-3">
@@ -104,7 +138,10 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
         ) : (
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
             <p className="text-gray-500 text-sm">No upcoming bookings.</p>
-            <Link href={`/book-service?vehicle_id=${vehicle.id}`} className="text-blue-400 hover:text-blue-300 text-sm mt-1 inline-block">
+            <Link
+              href={`/book-service?vehicle_id=${vehicle.id}`}
+              className="text-blue-400 hover:text-blue-300 text-sm mt-1 inline-block"
+            >
               Book a service →
             </Link>
           </div>
@@ -128,13 +165,19 @@ export default async function VehicleDetailPage({ params }: { params: { id: stri
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800">
-                {history.map(booking => (
+                {history.map((booking: Booking) => (
                   <tr key={booking.id} className="text-gray-300">
                     <td className="py-3">
-                      {new Date(booking.service_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {new Date(booking.service_date).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric'
+                      })}
                     </td>
-                    <td className="py-3">{PACKAGE_LABELS[booking.package_slug] ?? booking.package_label}</td>
-                    <td className="py-3 text-gray-500">{booking.employee_id ? 'Assigned' : '—'}</td>
+                    <td className="py-3">
+                      {PACKAGE_LABELS[booking.package_slug] ?? booking.package_label}
+                    </td>
+                    <td className="py-3 text-gray-500">
+                      {booking.employee_id ? 'Assigned' : '—'}
+                    </td>
                     <td className="py-3 text-right">
                       {booking.final_price
                         ? `$${Number(booking.final_price).toFixed(2)}`
