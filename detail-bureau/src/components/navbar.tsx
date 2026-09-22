@@ -17,8 +17,8 @@ export default function Navbar() {
 
 
   /// --------------------useEffect for user session is not needed anymore as we have implemented authContext.
-  
-  
+
+
   // useEffect(() => {
   //   supabase.auth.getUser().then(({ data }) => {
   //     setUser(data.user ? { email: data.user.email ?? '' } : null)
@@ -63,11 +63,23 @@ export default function Navbar() {
                 </li>
               ))}
               {session && (
-                <li className="site-navigation__item">
-                  <Link className="site-navigation__link" href="/dashboard">
-                    My Vehicles
-                  </Link>
-                </li>
+                <div className="site-navigation__divider">
+                  <li className="site-navigation__item">
+                    <Link className="site-navigation__link" href="/dashboard">
+                      My Vehicles
+                    </Link>
+                  </li>
+                </div>
+              )}
+              {session && (
+                <div className="site-navigation__divider">
+                  <li className="site-navigation__item">
+                    {/* Currently redirecting to dashboard as a placeholder */}
+                    <Link className="site-navigation__link" href="/dashboard">
+                      User
+                    </Link>
+                  </li>
+                </div>
               )}
             </ul>
           </nav>
