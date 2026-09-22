@@ -5,23 +5,29 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import './navbar.css'
+import { useAuth } from '@/context/authContext'
 
 export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
-  const [user, setUser] = useState<null | { email: string }>(null)
+  // const [user, setUser] = useState<null | { email: string }>(null)
+  const { user, session } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ? { email: data.user.email ?? '' } : null)
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? { email: session.user.email ?? '' } : null)
-    })
-    return () => listener.subscription.unsubscribe()
-  }, [])
+
+  /// --------------------useEffect for user session is not needed anymore as we have implemented authContext.
+  
+  
+  // useEffect(() => {
+  //   supabase.auth.getUser().then(({ data }) => {
+  //     setUser(data.user ? { email: data.user.email ?? '' } : null)
+  //   })
+  //   const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setUser(session?.user ? { email: session.user.email ?? '' } : null)
+  //   })
+  //   return () => listener.subscription.unsubscribe()
+  // }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -56,7 +62,7 @@ export default function Navbar() {
                   </Link>
                 </li>
               ))}
-              {user && (
+              {session && (
                 <li className="site-navigation__item">
                   <Link className="site-navigation__link" href="/dashboard">
                     My Vehicles
@@ -66,7 +72,7 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          {user ? (
+          {session ? (
             <button className="header-secondary-link" onClick={handleSignOut}>
               Sign Out
             </button>
