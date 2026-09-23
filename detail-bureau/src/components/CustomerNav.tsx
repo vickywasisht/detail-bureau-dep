@@ -20,24 +20,29 @@ export default function CustomerNav({ customer }: Props) {
   }
 
   return (
-    <nav className="border-b border-gray-800 bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200">
+      <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-white font-semibold tracking-widest text-sm uppercase">
+          <Link href="/" className="text-black font-medium text-base">
             The Detail Bureau
           </Link>
           <Link
             href="/dashboard"
-            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${pathname.startsWith('/dashboard') ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`text-sm transition-opacity ${pathname.startsWith('/dashboard') ? 'text-black' : 'text-gray-600 hover:opacity-60'}`}
           >
             My Vehicles
           </Link>
         </div>
-        <div className="flex items-center gap-4">
-          {customer && <span className="text-gray-400 text-sm">{customer.first_name} {customer.last_name}</span>}
-          <button onClick={handleSignOut} className="text-gray-500 hover:text-white text-sm transition-colors">Sign out</button>
+        <div className="flex items-center gap-6">
+          {customer && <span className="text-gray-700 text-sm">{customer.first_name} {customer.last_name}</span>}
+          <Link href="/profile" className="text-sm text-gray-600 hover:text-black transition-colors">
+            User
+          </Link>
+          <button onClick={handleSignOut} className="text-sm font-medium px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors">
+            Sign out
+          </button>
         </div>
       </div>
-    </nav>
+    </header>
   )
 }

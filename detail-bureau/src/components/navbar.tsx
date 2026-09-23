@@ -75,7 +75,7 @@ export default function Navbar() {
                 <div className="site-navigation__divider">
                   <li className="site-navigation__item">
                     {/* Currently redirecting to dashboard as a placeholder */}
-                    <Link className="site-navigation__link" href="/dashboard">
+                    <Link className="site-navigation__link" href="/profile">
                       User
                     </Link>
                   </li>

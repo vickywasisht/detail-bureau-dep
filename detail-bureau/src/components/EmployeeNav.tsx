@@ -23,28 +23,32 @@ export default function EmployeeNav({ employee }: Props) {
     ]
 
     return (
-        <nav className="border-b border-gray-800 bg-gray-900">
-            <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                    <span className="text-white font-semibold tracking-widest text-sm uppercase">
-                        Detail Bureau <span className="text-gray-500 font-normal">Staff</span>
-                    </span>
-                    <div className="flex items-center gap-1">
+                    <Link href="/employee/dashboard" className="text-black font-medium text-base">
+                        The Detail Bureau
+                    </Link>
+                    <div className="flex items-center gap-6">
                         {links.map(link => (
                             <Link key={link.href} href={link.href}
-                                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${pathname.startsWith(link.href) ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-white'}`}
+                                className={`text-sm transition-opacity ${pathname.startsWith(link.href) ? 'text-black' : 'text-gray-600 hover:opacity-60'}`}
                             >
                                 {link.label}
                             </Link>
                         ))}
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <span className="text-gray-400 text-sm">{employee.username}</span>
-                    <span className="text-gray-500 text-sm capitalize">{employee.role}</span>
-                    <button onClick={handleSignOut} className="text-gray-500 hover:text-white text-sm transition-colors">Sign out</button>
+                <div className="flex items-center gap-6">
+                    <div className="text-right">
+                        <div className="text-sm text-black font-medium">{employee.username}</div>
+                        <div className="text-xs text-gray-600 capitalize">{employee.role}</div>
+                    </div>
+                    <button onClick={handleSignOut} className="text-sm font-medium px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors">
+                        Sign out
+                    </button>
                 </div>
             </div>
-        </nav>
+        </header>
     )
 }

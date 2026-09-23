@@ -32,48 +32,48 @@ export default function EmployeeLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-white tracking-widest uppercase">
+          <h1 className="text-xl font-semibold text-black tracking-widest uppercase">
             The Detail Bureau
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Employee Portal</p>
+          <p className="text-gray-600 text-sm mt-1">Employee Portal</p>
         </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <h2 className="text-lg font-semibold text-white mb-6">Employee Sign In</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-8">
+          <h2 className="text-lg font-semibold text-black mb-6">Employee Sign In</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Username</label>
+              <label className="block text-sm text-gray-700 mb-1">Username</label>
               <input
                 type="text"
                 value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })}
                 required
                 autoComplete="username"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Password</label>
+              <label className="block text-sm text-gray-700 mb-1">Password</label>
               <input
                 type="password"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
                 required
                 autoComplete="current-password"
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
               />
             </div>
             {error && (
-              <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-3 py-2">
+              <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                 {error}
               </p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+              className="w-full bg-black hover:bg-gray-800 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
