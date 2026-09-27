@@ -18,11 +18,11 @@ interface BookingStatusRow {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:     'bg-yellow-950 text-yellow-400 border border-yellow-800',
-  confirmed:   'bg-green-950 text-green-400 border border-green-800',
-  in_progress: 'bg-blue-950 text-blue-400 border border-blue-800',
-  completed:   'bg-gray-800 text-gray-400 border border-gray-700',
-  cancelled:   'bg-red-950 text-red-400 border border-red-800',
+  pending:     'bg-yellow-50 text-yellow-700 border border-yellow-200',
+  confirmed:   'bg-green-50 text-green-700 border border-green-200',
+  in_progress: 'bg-blue-50 text-blue-700 border border-blue-200',
+  completed:   'bg-gray-100 text-gray-600 border border-gray-200',
+  cancelled:   'bg-red-50 text-red-700 border border-red-200',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -56,17 +56,17 @@ export default async function EmployeeDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-white mb-8">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-black mb-8">Dashboard</h1>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Pending',     count: counts.pending,     color: 'text-yellow-400' },
-          { label: 'Confirmed',   count: counts.confirmed,   color: 'text-green-400' },
-          { label: 'In Progress', count: counts.in_progress, color: 'text-blue-400' },
-          { label: 'Completed',   count: counts.completed,   color: 'text-gray-400' },
+          { label: 'Pending',     count: counts.pending,     color: 'text-yellow-600' },
+          { label: 'Confirmed',   count: counts.confirmed,   color: 'text-green-600' },
+          { label: 'In Progress', count: counts.in_progress, color: 'text-blue-600' },
+          { label: 'Completed',   count: counts.completed,   color: 'text-gray-500' },
         ].map(s => (
-          <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <p className="text-gray-500 text-sm">{s.label}</p>
             <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.count}</p>
           </div>
@@ -74,21 +74,21 @@ export default async function EmployeeDashboardPage() {
       </div>
 
       {/* Active bookings */}
-      <h2 className="text-lg font-semibold text-white mb-4">Active Bookings</h2>
+      <h2 className="text-lg font-semibold text-black mb-4">Active Bookings</h2>
       {bookings && bookings.length > 0 ? (
         <div className="space-y-3">
           {bookings.map((b: BookingListItem) => (
             <Link
               key={b.id}
               href={`/employee/bookings/${b.id}`}
-              className="block bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-5 transition-colors"
+              className="block bg-white border border-gray-200 hover:border-gray-400 rounded-xl p-5 shadow-sm transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-white font-medium">
+                  <p className="text-black font-medium">
                     {b.customers?.first_name} {b.customers?.last_name}
                   </p>
-                  <p className="text-gray-400 text-sm mt-0.5">
+                  <p className="text-gray-600 text-sm mt-0.5">
                     {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.package_label}
                   </p>
                   <p className="text-gray-500 text-sm mt-1">
@@ -105,7 +105,7 @@ export default async function EmployeeDashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-10 text-center">
+        <div className="bg-white border border-gray-200 rounded-xl p-10 text-center shadow-sm">
           <p className="text-gray-500">No active bookings right now.</p>
         </div>
       )}

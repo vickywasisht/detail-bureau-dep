@@ -84,37 +84,37 @@ export default function EmployeeBookingDetailPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <Link href="/employee/bookings" className="text-gray-400 hover:text-white text-sm">
+        <Link href="/employee/bookings" className="text-gray-500 hover:text-black text-sm">
           ← All Bookings
         </Link>
-        <h1 className="text-2xl font-semibold text-white mt-3">Booking Details</h1>
+        <h1 className="text-2xl font-semibold text-black mt-3">Booking Details</h1>
       </div>
 
       <div className="space-y-4">
         {/* Customer */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Customer</h2>
-          <p className="text-white">{booking.customers?.first_name} {booking.customers?.last_name}</p>
-          <p className="text-gray-400 text-sm">{booking.customers?.email}</p>
+          <p className="text-black">{booking.customers?.first_name} {booking.customers?.last_name}</p>
+          <p className="text-gray-600 text-sm">{booking.customers?.email}</p>
           {booking.customers?.phone && (
-            <p className="text-gray-400 text-sm">{booking.customers.phone}</p>
+            <p className="text-gray-600 text-sm">{booking.customers.phone}</p>
           )}
         </div>
 
         {/* Vehicle */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Vehicle</h2>
-          <p className="text-white">
+          <p className="text-black">
             {booking.vehicles?.year} {booking.vehicles?.make} {booking.vehicles?.model}
           </p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-600 text-sm">
             {booking.vehicles?.vehicle_type}
             {booking.vehicles?.color ? ` · ${booking.vehicles.color}` : ''}
           </p>
         </div>
 
         {/* Service */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Service</h2>
           <div className="space-y-2 text-sm">
             {[
@@ -128,28 +128,28 @@ export default function EmployeeBookingDetailPage() {
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between">
                 <span className="text-gray-500">{label}</span>
-                <span className="text-gray-200">{value}</span>
+                <span className="text-gray-800">{value}</span>
               </div>
             ))}
           </div>
           {booking.special_notes && (
-            <div className="mt-3 pt-3 border-t border-gray-800">
+            <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Customer notes</p>
-              <p className="text-gray-300 text-sm">{booking.special_notes}</p>
+              <p className="text-gray-700 text-sm">{booking.special_notes}</p>
             </div>
           )}
         </div>
 
         {/* Update booking */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Update Booking</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Status</label>
+              <label className="block text-sm text-gray-600 mb-1">Status</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
               >
                 {STATUSES.map(s => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -157,15 +157,15 @@ export default function EmployeeBookingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Final Price (optional)</label>
+              <label className="block text-sm text-gray-600 mb-1">Final Price (optional)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
                 <input
                   type="number"
                   value={finalPrice}
                   onChange={e => setFinalPrice(e.target.value)}
                   placeholder={String(booking.quoted_price ?? '')}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-7 pr-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-7 pr-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
                 />
               </div>
             </div>
