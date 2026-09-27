@@ -22,8 +22,9 @@ export default function HomePage() {
           >
             View Packages
           </Link>
+          {/* -----------------------------------------------------------------------Need to fix this current Implementation redirects to log in*/}
           <Link
-            href="/login"
+            href="/book-service"
             className="border border-white text-white font-semibold px-8 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
           >
             Book Now

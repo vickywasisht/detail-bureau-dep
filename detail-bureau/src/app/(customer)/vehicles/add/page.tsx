@@ -43,56 +43,56 @@ export default function AddVehiclePage() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-6">
-        <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm transition-colors">
+        <Link href="/dashboard" className="text-gray-600 hover:text-black text-sm transition-colors">
           ← Back to My Vehicles
         </Link>
-        <h1 className="text-2xl font-semibold text-white mt-3">Add a Vehicle</h1>
+        <h1 className="text-2xl font-semibold text-black mt-3">Add a Vehicle</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Make</label>
+            <label className="block text-sm text-gray-700 mb-1">Make</label>
             <input
               name="make" value={form.make} onChange={handleChange} required
               placeholder="e.g. Toyota"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Model</label>
+            <label className="block text-sm text-gray-700 mb-1">Model</label>
             <input
               name="model" value={form.model} onChange={handleChange} required
               placeholder="e.g. Camry"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Year</label>
+            <label className="block text-sm text-gray-700 mb-1">Year</label>
             <input
               name="year" value={form.year} onChange={handleChange} required
               placeholder="e.g. 2022"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Color (optional)</label>
+            <label className="block text-sm text-gray-700 mb-1">Color (optional)</label>
             <input
               name="color" value={form.color} onChange={handleChange}
               placeholder="e.g. Black"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Vehicle Type</label>
+          <label className="block text-sm text-gray-700 mb-1">Vehicle Type</label>
           <select
             name="vehicle_type" value={form.vehicle_type} onChange={handleChange} required
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
           >
             <option value="">— Select type —</option>
             {VEHICLE_TYPES.map(t => (
@@ -102,12 +102,12 @@ export default function AddVehiclePage() {
         </div>
 
         {error && (
-          <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-3 py-2">{error}</p>
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
         )}
 
         <button
           type="submit" disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-black hover:bg-gray-800 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
         >
           {loading ? 'Adding vehicle...' : 'Add Vehicle'}
         </button>

@@ -164,7 +164,7 @@ export default function PackagesPage() {
                 </div>
 
                 <Link
-                  href="/login"
+                  href="/book-service"
                   className={`block text-center font-semibold py-3 rounded-xl transition-colors text-sm ${
                     pkg.popular
                       ? 'bg-black text-white hover:bg-gray-800'
