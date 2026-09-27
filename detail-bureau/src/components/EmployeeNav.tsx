@@ -20,6 +20,7 @@ export default function EmployeeNav({ employee }: Props) {
     const links = [
         { href: '/employee/dashboard', label: 'Dashboard' },
         { href: '/employee/bookings', label: 'Bookings' },
+        { href: '/employee/employeeDetails', label: 'My Details' },
     ]
 
     return (
