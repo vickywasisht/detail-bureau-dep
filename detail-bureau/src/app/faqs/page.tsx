@@ -44,7 +44,7 @@ export default function FAQsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <main className="max-w-2xl mx-auto px-6 py-16">
+      <main className="w-full max-w-2xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-black mb-4">Frequently Asked Questions</h1>
           <p className="text-gray-500">Everything you need to know before booking.</p>
@@ -60,11 +60,17 @@ export default function FAQsPage() {
                 <span className="font-medium text-black text-sm">{faq.q}</span>
                 <span className="text-gray-400 ml-4 shrink-0">{open === i ? '−' : '+'}</span>
               </button>
-              {open === i && (
-                <div className="px-5 pb-4">
-                  <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+
+              <div
+                className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${open === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="px-5 pb-4">
+                    <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
