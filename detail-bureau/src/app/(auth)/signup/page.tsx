@@ -99,66 +99,66 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Last name</label>
+            <label className="block text-sm text-gray-700 mb-1">Last name</label>
             <input
               name="last_name"
               value={form.last_name}
               onChange={handleChange}
               required
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Email</label>
+          <label className="block text-sm text-gray-700 mb-1">Email</label>
           <input
             name="email"
             type="email"
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Phone (optional)</label>
+          <label className="block text-sm text-gray-700 mb-1">Phone (optional)</label>
           <input
             name="phone"
             type="tel"
             value={form.phone}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Password</label>
+          <label className="block text-sm text-gray-700 mb-1">Password</label>
           <input
             name="password"
             type="password"
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Confirm password</label>
+          <label className="block text-sm text-gray-700 mb-1">Confirm password</label>
           <input
             name="confirm_password"
             type="password"
             value={form.confirm_password}
             onChange={handleChange}
             required
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
           />
         </div>
 
         {error && (
-          <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-3 py-2">
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
