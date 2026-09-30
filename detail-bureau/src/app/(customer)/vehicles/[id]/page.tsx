@@ -3,11 +3,11 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:     'bg-yellow-950 text-yellow-400 border border-yellow-800',
-  confirmed:   'bg-green-950 text-green-400 border border-green-800',
-  in_progress: 'bg-blue-950 text-blue-400 border border-blue-800',
-  completed:   'bg-gray-800 text-gray-400 border border-gray-700',
-  cancelled:   'bg-red-950 text-red-400 border border-red-800',
+  pending:     'bg-yellow-50 text-yellow-700 border border-yellow-200',
+  confirmed:   'bg-green-50 text-green-700 border border-green-200',
+  in_progress: 'bg-blue-50 text-blue-700 border border-blue-200',
+  completed:   'bg-gray-100 text-gray-600 border border-gray-200',
+  cancelled:   'bg-red-50 text-red-700 border border-red-200',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -74,21 +74,21 @@ export default async function VehicleDetailPage({
   return (
     <div>
       <div className="mb-6">
-        <Link href="/dashboard" className="text-gray-400 hover:text-white text-sm transition-colors">
+        <Link href="/dashboard" className="text-gray-500 hover:text-black text-sm transition-colors">
           ← Back to My Vehicles
         </Link>
         <div className="flex items-center justify-between mt-3">
           <div>
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold text-black">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-gray-600 text-sm mt-1">
               {vehicle.vehicle_type}{vehicle.color ? ` · ${vehicle.color}` : ''}
             </p>
           </div>
           <Link
             href={`/book-service?vehicle_id=${vehicle.id}`}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             + Book a Service
           </Link>
@@ -97,15 +97,15 @@ export default async function VehicleDetailPage({
 
       {/* Scheduled Bookings */}
       <section className="mb-10">
-        <h2 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
+        <h2 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
           Scheduled
         </h2>
         {scheduled.length > 0 ? (
           <div className="space-y-3">
             {scheduled.map((booking: Booking) => (
-              <div key={booking.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div key={booking.id} className="bg-white border border-gray-200 rounded-xl p-5">
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-white font-medium">
+                  <h3 className="text-black font-medium">
                     {PACKAGE_LABELS[booking.package_slug] ?? booking.package_label}
                   </h3>
                   {/* ------------------------------------------------------ */}
@@ -114,7 +114,7 @@ export default async function VehicleDetailPage({
                   </span>
                   {/* ------------------------------------------------------ */}
                 </div>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                   <span>
                     📅 {new Date(booking.service_date).toLocaleDateString('en-US', {
                       weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
@@ -128,7 +128,7 @@ export default async function VehicleDetailPage({
                   )}
                 </div>
                 {booking.special_notes && (
-                  <p className="text-gray-500 text-sm mt-3 border-t border-gray-800 pt-3">
+                  <p className="text-gray-500 text-sm mt-3 border-t border-gray-200 pt-3">
                     {booking.special_notes}
                   </p>
                 )}
@@ -136,11 +136,11 @@ export default async function VehicleDetailPage({
             ))}
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
             <p className="text-gray-500 text-sm">No upcoming bookings.</p>
             <Link
               href={`/book-service?vehicle_id=${vehicle.id}`}
-              className="text-blue-400 hover:text-blue-300 text-sm mt-1 inline-block"
+              className="text-blue-600 hover:text-blue-700 text-sm mt-1 inline-block"
             >
               Book a service →
             </Link>
@@ -150,7 +150,7 @@ export default async function VehicleDetailPage({
 
       {/* Service History */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-4 pb-2 border-b border-gray-800">
+        <h2 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
           Service History
         </h2>
         {history.length > 0 ? (
@@ -164,9 +164,9 @@ export default async function VehicleDetailPage({
                   <th className="pb-3 font-medium text-right">Cost</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-gray-200">
                 {history.map((booking: Booking) => (
-                  <tr key={booking.id} className="text-gray-300">
+                  <tr key={booking.id} className="text-gray-700">
                     <td className="py-3">
                       {new Date(booking.service_date).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric', year: 'numeric'
@@ -191,7 +191,7 @@ export default async function VehicleDetailPage({
             </table>
           </div>
         ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
             <p className="text-gray-500 text-sm">No completed services yet.</p>
           </div>
         )}
