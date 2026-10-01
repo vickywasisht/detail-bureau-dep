@@ -65,12 +65,12 @@ function BookingConfirmForm() {
       <div className="mb-6">
         <Link
           href={`/booking-pricing?vehicle_id=${vehicleId}&vehicle_type=${vehicleType}&dropoff_date=${dropoffDate}&dropoff_time=${encodeURIComponent(dropoffTime)}&special_notes=${encodeURIComponent(specialNotes)}`}
-          className="text-gray-400 hover:text-white text-sm"
+          className="text-gray-600 hover:text-black text-sm"
         >
           ← Change Package
         </Link>
-        <h1 className="text-2xl font-semibold text-white mt-3">Confirm Booking</h1>
-        <p className="text-gray-400 text-sm mt-1">Review your details before confirming.</p>
+        <h1 className="text-2xl font-semibold text-black mt-3">Confirm Booking</h1>
+        <p className="text-gray-600 text-sm mt-1">Review your details before confirming.</p>
       </div>
 
       <div className="space-y-3 mb-6">
@@ -84,13 +84,13 @@ function BookingConfirmForm() {
           ]},
           ...(specialNotes ? [{ title: 'Notes', rows: [['', specialNotes]] }] : []),
         ].map(section => (
-          <div key={section.title} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+          <div key={section.title} className="bg-gray-50 border border-gray-200 rounded-xl p-5">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.title}</h2>
             <div className="space-y-2">
               {section.rows.map(([label, value]) => (
                 <div key={label} className={`flex text-sm ${label ? 'justify-between' : ''}`}>
                   {label && <span className="text-gray-500">{label}</span>}
-                  <span className={`text-gray-200 ${label === 'Quoted price' ? 'text-blue-400 font-semibold' : ''}`}>{value}</span>
+                  <span className={`text-black ${label === 'Quoted price' ? 'text-blue-600 font-semibold' : ''}`}>{value}</span>
                 </div>
               ))}
             </div>
@@ -99,26 +99,26 @@ function BookingConfirmForm() {
       </div>
 
       {/* Cancellation Policy */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Cancellation & Refund Policy</h2>
-        <p className="text-gray-400 text-sm leading-relaxed mb-4">{POLICY_TEXT}</p>
+        <p className="text-gray-600 text-sm leading-relaxed mb-4">{POLICY_TEXT}</p>
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={policyAccepted}
             onChange={e => { setPolicyAccepted(e.target.checked); setError('') }}
-            className="mt-0.5 w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+            className="mt-0.5 w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-offset-white"
           />
-          <span className="text-sm text-gray-300">
+          <span className="text-sm text-gray-700">
             I have read and agree to the cancellation and refund policy.
           </span>
         </label>
       </div>
 
-      <p className="text-gray-600 text-xs mb-4">* Final price confirmed at drop-off based on vehicle condition.</p>
+      <p className="text-gray-500 text-xs mb-4">* Final price confirmed at drop-off based on vehicle condition.</p>
 
       {error && (
-        <p className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</p>
       )}
 
       <button
