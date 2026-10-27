@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
+import { adminClient } from './supabase/admin'
 
 export interface EmployeePayload {
   id: string
@@ -13,7 +14,12 @@ export async function getEmployeeFromToken(): Promise<EmployeePayload | null> {
     const token = cookieStore.get('employee_token')?.value
     if (!token) return null
     const payload = jwt.verify(token, process.env.EMPLOYEE_JWT_SECRET!) as EmployeePayload
-    return payload
+    //double check straight from db if the employee is still active
+    const { data } = await adminClient
+      .from('employees').select('id, username, role, is_active')
+      .eq('id', payload.id).single()
+    if (!data || !data.is_active) return null
+    return { id: data.id, username: data.username, role: data.role } as EmployeePayload
   } catch {
     return null
   }
