@@ -39,6 +39,11 @@ if (path.startsWith('/employee') && !path.startsWith('/employee-login')) {
     return NextResponse.redirect(new URL('/employee-login', request.url))
   }
 }
+  // ── Owner route protection (JWT cookie check)
+const isOwnerRoute = path === '/owner' || path.startsWith('/owner/')
+if (isOwnerRoute && !request.cookies.get('employee_token')) {
+  return NextResponse.redirect(new URL('/owner-login', request.url))
+}
 
   return supabaseResponse
 }

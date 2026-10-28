@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json()
+  const { username, password, portal } = await req.json()
 
   if (!username || !password) {
     return NextResponse.json({ error: 'Username and password required.' }, { status: 400 })
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   const valid = await bcrypt.compare(password, employee.password_hash)
-  if (!valid) {
+  if (!valid || (portal === 'owner' && employee.role !== 'owner')) {
     return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
   }
 
