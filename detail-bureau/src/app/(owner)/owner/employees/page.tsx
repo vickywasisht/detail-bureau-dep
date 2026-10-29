@@ -12,7 +12,7 @@ interface Employee {
   is_active: boolean
 }
 
-const emptyForm = { username: '', first_name: '', last_name: '', password: '', role: 'employee' }
+const emptyForm = { username: '', first_name: '', last_name: '', email: '', password: '', role: 'employee' }
 const inputClass = 'border border-gray-300 p-2 rounded w-full placeholder-gray-500'
 
 export default function OwnerEmployeesPage() {
@@ -226,6 +226,8 @@ export default function OwnerEmployeesPage() {
               </div>
               <input required placeholder="Username" value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })} className={inputClass} />
+              <input required type="email" placeholder="Email" value={form.email}
+                onChange={e => setForm({ ...form, email: e.target.value })} className={inputClass} />
               <input required type="password" placeholder="Temporary password (min 8 characters)" value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })} className={inputClass} />
               <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
