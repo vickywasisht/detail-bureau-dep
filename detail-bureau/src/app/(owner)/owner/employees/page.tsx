@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
 
 interface Employee {
   id: string
@@ -11,12 +12,17 @@ interface Employee {
   is_active: boolean
 }
 
+const emptyForm = { username: '', first_name: '', last_name: '', password: '', role: 'employee' }
+const inputClass = 'border border-gray-300 p-2 rounded w-full placeholder-gray-500'
+
 export default function OwnerEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [error, setError] = useState('')
-  const [form, setForm] = useState({
-    username: '', first_name: '', last_name: '', password: '', role: 'employee',
-  })
+  const [modalError, setModalError] = useState('')
+  const [search, setSearch] = useState('')
+  const [showModal, setShowModal] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState(emptyForm)
 
   const load = async () => {
     const res = await fetch('/api/owner/employees')
@@ -24,17 +30,34 @@ export default function OwnerEmployeesPage() {
   }
   useEffect(() => { load() }, [])
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return employees
+    return employees.filter(e =>
+      `${e.first_name} ${e.last_name} ${e.username} ${e.role} ${e.is_active ? 'active' : 'deactivated'}`
+        .toLowerCase().includes(q)
+    )
+  }, [employees, search])
+
+  const closeModal = () => {
+    setShowModal(false)
+    setModalError('')
+    setForm(emptyForm)
+  }
+
   const create = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setModalError('')
+    setSaving(true)
     const res = await fetch('/api/owner/employees', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     })
     const data = await res.json()
-    if (!res.ok) return setError(data.error)
-    setForm({ username: '', first_name: '', last_name: '', password: '', role: 'employee' })
+    setSaving(false)
+    if (!res.ok) return setModalError(data.error)
+    closeModal()
     load()
   }
 
@@ -51,58 +74,126 @@ export default function OwnerEmployeesPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Employees</h1>
-      {error && <p className="text-red-600">{error}</p>}
+    <div className="space-y-6">
+      <div>
+        <Link href="/owner/dashboard" className="text-sm text-gray-700 underline">
+          ← Back to dashboard
+        </Link>
+        <div className="mt-2 flex items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold">Employees</h1>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-black text-white rounded px-4 py-2"
+          >
+            Create employee
+          </button>
+        </div>
+      </div>
 
-      <form onSubmit={create} className="grid grid-cols-2 gap-3 max-w-xl">
-        <input required placeholder="First name" value={form.first_name}
-          onChange={e => setForm({ ...form, first_name: e.target.value })} className="border p-2 rounded" />
-        <input required placeholder="Last name" value={form.last_name}
-          onChange={e => setForm({ ...form, last_name: e.target.value })} className="border p-2 rounded" />
-        <input required placeholder="Username" value={form.username}
-          onChange={e => setForm({ ...form, username: e.target.value })} className="border p-2 rounded" />
-        <input required type="password" placeholder="Temporary password" value={form.password}
-          onChange={e => setForm({ ...form, password: e.target.value })} className="border p-2 rounded" />
-        <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
-          className="border p-2 rounded">
-          <option value="employee">Employee</option>
-          <option value="owner">Owner</option>
-        </select>
-        <button type="submit" className="bg-black text-white rounded p-2">Create employee</button>
-      </form>
+      <input
+        type="search"
+        placeholder="Search by name, username, role or status"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className={`${inputClass} max-w-md`}
+      />
+
+      {error && <p className="text-red-600">{error}</p>}
 
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="border-b">
-            <th className="p-2">Name</th><th className="p-2">Username</th>
-            <th className="p-2">Role</th><th className="p-2">Status</th><th className="p-2" />
+          <tr className="border-b border-gray-300">
+            <th className="p-2">Name</th>
+            <th className="p-2">Username</th>
+            <th className="p-2">Role</th>
+            <th className="p-2">Status</th>
+            <th className="p-2" />
           </tr>
         </thead>
         <tbody>
-          {employees.map(emp => (
-            <tr key={emp.id} className="border-b">
+          {filtered.map(emp => (
+            <tr key={emp.id} className="border-b border-gray-200">
               <td className="p-2">{emp.first_name} {emp.last_name}</td>
               <td className="p-2">{emp.username}</td>
               <td className="p-2">
-                <select value={emp.role}
+                <select
+                  value={emp.role}
                   onChange={e => update(emp.id, { role: e.target.value as Employee['role'] })}
-                  className="border p-1 rounded">
+                  className="border border-gray-300 p-1 rounded"
+                >
                   <option value="employee">Employee</option>
                   <option value="owner">Owner</option>
                 </select>
               </td>
               <td className="p-2">{emp.is_active ? 'Active' : 'Deactivated'}</td>
               <td className="p-2">
-                <button onClick={() => update(emp.id, { is_active: !emp.is_active })}
-                  className="underline">
+                <button
+                  onClick={() => update(emp.id, { is_active: !emp.is_active })}
+                  className="underline"
+                >
                   {emp.is_active ? 'Deactivate' : 'Reactivate'}
                 </button>
               </td>
             </tr>
           ))}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan={5} className="p-4 text-center text-gray-700">
+                {employees.length === 0 ? 'No employees yet.' : 'No employees match your search.'}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
+
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={closeModal}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-employee-title"
+            className="w-full max-w-md rounded-lg bg-white p-6 text-black shadow-xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 id="create-employee-title" className="text-xl font-semibold mb-4">
+              Create employee
+            </h2>
+            <form onSubmit={create} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <input required placeholder="First name" value={form.first_name}
+                  onChange={e => setForm({ ...form, first_name: e.target.value })} className={inputClass} />
+                <input required placeholder="Last name" value={form.last_name}
+                  onChange={e => setForm({ ...form, last_name: e.target.value })} className={inputClass} />
+              </div>
+              <input required placeholder="Username" value={form.username}
+                onChange={e => setForm({ ...form, username: e.target.value })} className={inputClass} />
+              <input required type="password" placeholder="Temporary password (min 8 characters)" value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })} className={inputClass} />
+              <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
+                className={inputClass}>
+                <option value="employee">Employee</option>
+                <option value="owner">Owner</option>
+              </select>
+
+              {modalError && <p className="text-red-600 text-sm">{modalError}</p>}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={closeModal}
+                  className="rounded border border-gray-300 px-4 py-2">
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving}
+                  className="rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+                  {saving ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
