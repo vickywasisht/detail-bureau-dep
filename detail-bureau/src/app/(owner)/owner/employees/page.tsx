@@ -23,6 +23,8 @@ export default function OwnerEmployeesPage() {
   const [showModal, setShowModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [pending, setPending] = useState<Record<string, Partial<Pick<Employee, 'role' | 'is_active'>>>>({})
+  const [savingChanges, setSavingChanges] = useState(false)
 
   const load = async () => {
     const res = await fetch('/api/owner/employees')
@@ -61,15 +63,40 @@ export default function OwnerEmployeesPage() {
     load()
   }
 
-  const update = async (id: string, changes: Partial<Employee>) => {
-    setError('')
-    const res = await fetch(`/api/owner/employees/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(changes),
+  // Stage a change locally; nothing is sent until the owner clicks Save changes
+  const stage = (emp: Employee, changes: Partial<Pick<Employee, 'role' | 'is_active'>>) => {
+    setPending(prev => {
+      const next = { ...prev[emp.id], ...changes }
+      if (next.role === emp.role) delete next.role
+      if (next.is_active === emp.is_active) delete next.is_active
+      const copy = { ...prev }
+      if (Object.keys(next).length === 0) delete copy[emp.id]
+      else copy[emp.id] = next
+      return copy
     })
-    const data = await res.json()
-    if (!res.ok) return setError(data.error)
+  }
+
+  const pendingCount = Object.values(pending).reduce((n, c) => n + Object.keys(c).length, 0)
+
+  const saveChanges = async () => {
+    setError('')
+    setSavingChanges(true)
+    const failures: string[] = []
+    for (const [id, changes] of Object.entries(pending)) {
+      const res = await fetch(`/api/owner/employees/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        const emp = employees.find(e => e.id === id)
+        failures.push(`${emp?.username ?? id}: ${data.error ?? 'Update failed.'}`)
+      }
+    }
+    setSavingChanges(false)
+    setPending({})
+    if (failures.length) setError(failures.join(' '))
     load()
   }
 
@@ -98,6 +125,28 @@ export default function OwnerEmployeesPage() {
         className={`${inputClass} max-w-md`}
       />
 
+      <div className="flex items-center gap-3">
+        <button
+          onClick={saveChanges}
+          disabled={pendingCount === 0 || savingChanges}
+          className="rounded bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {savingChanges ? 'Saving...' : 'Save changes'}
+        </button>
+        <button
+          onClick={() => setPending({})}
+          disabled={pendingCount === 0 || savingChanges}
+          className="rounded border border-gray-300 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Undo all changes
+        </button>
+        {pendingCount > 0 && (
+          <span className="text-sm text-gray-700">
+            {pendingCount} unsaved {pendingCount === 1 ? 'change' : 'changes'}
+          </span>
+        )}
+      </div>
+
       {error && <p className="text-red-600">{error}</p>}
 
       <table className="w-full text-left border-collapse">
@@ -111,31 +160,38 @@ export default function OwnerEmployeesPage() {
           </tr>
         </thead>
         <tbody>
-          {filtered.map(emp => (
-            <tr key={emp.id} className="border-b border-gray-200">
-              <td className="p-2">{emp.first_name} {emp.last_name}</td>
-              <td className="p-2">{emp.username}</td>
-              <td className="p-2">
-                <select
-                  value={emp.role}
-                  onChange={e => update(emp.id, { role: e.target.value as Employee['role'] })}
-                  className="border border-gray-300 p-1 rounded"
-                >
-                  <option value="employee">Employee</option>
-                  <option value="owner">Owner</option>
-                </select>
-              </td>
-              <td className="p-2">{emp.is_active ? 'Active' : 'Deactivated'}</td>
-              <td className="p-2">
-                <button
-                  onClick={() => update(emp.id, { is_active: !emp.is_active })}
-                  className="underline"
-                >
-                  {emp.is_active ? 'Deactivate' : 'Reactivate'}
-                </button>
-              </td>
-            </tr>
-          ))}
+          {filtered.map(emp => {
+            const role = pending[emp.id]?.role ?? emp.role
+            const isActive = pending[emp.id]?.is_active ?? emp.is_active
+            return (
+              <tr
+                key={emp.id}
+                className={`border-b border-gray-200 ${pending[emp.id] ? 'bg-yellow-50' : ''}`}
+              >
+                <td className="p-2">{emp.first_name} {emp.last_name}</td>
+                <td className="p-2">{emp.username}</td>
+                <td className="p-2">
+                  <select
+                    value={role}
+                    onChange={e => stage(emp, { role: e.target.value as Employee['role'] })}
+                    className="border border-gray-300 p-1 rounded"
+                  >
+                    <option value="employee">Employee</option>
+                    <option value="owner">Owner</option>
+                  </select>
+                </td>
+                <td className="p-2">{isActive ? 'Active' : 'Deactivated'}</td>
+                <td className="p-2">
+                  <button
+                    onClick={() => stage(emp, { is_active: !isActive })}
+                    className="underline"
+                  >
+                    {isActive ? 'Deactivate' : 'Reactivate'}
+                  </button>
+                </td>
+              </tr>
+            )
+          })}
           {filtered.length === 0 && (
             <tr>
               <td colSpan={5} className="p-4 text-center text-gray-700">
