@@ -14,6 +14,7 @@ export async function GET(
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email, phone)')
     .eq('id', id)
+    .eq('employee_id', employee.id)
     .single()
 
   if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -29,7 +30,7 @@ export async function PATCH(
   if (!employee) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const allowed = ['booking_status', 'employee_id', 'final_price']
+  const allowed = ['booking_status', 'final_price']//no longer allowed to change emp id(aka assignment)
   const updates: Record<string, unknown> = {}
   allowed.forEach(key => { if (body[key] !== undefined) updates[key] = body[key] })
 
@@ -37,6 +38,7 @@ export async function PATCH(
     .from('bookings')
     .update(updates)
     .eq('id', id)
+    .eq('employee_id', employee.id)//ensure employee can only update its own assigned services
     .select()
     .single()
 
