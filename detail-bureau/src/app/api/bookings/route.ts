@@ -27,12 +27,20 @@ export async function POST(req: NextRequest) {
   const {
     vehicle_id, package_slug, package_label,
     service_date, dropoff_time, duration_hours,
-    quoted_price, special_notes,
+    quoted_price, special_notes, addon_ids,
   } = body
 
   if (!vehicle_id || !package_slug || !service_date || !dropoff_time) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
   }
+
+  // add-on prices are looked up server-side so a customer can't send their own
+  let addons: { id: string; name: string; price: number }[] = []
+  if (Array.isArray(addon_ids) && addon_ids.length > 0) {
+    const { data } = await adminClient.from('addons').select('id, name, price').in('id', addon_ids)
+    addons = (data ?? []).map(a => ({ id: a.id, name: a.name, price: Number(a.price) }))
+  }
+  const totalPrice = Number(quoted_price) + addons.reduce((n, a) => n + a.price, 0)
 
   const { data: booking, error } = await adminClient
     .from('bookings')
@@ -44,8 +52,9 @@ export async function POST(req: NextRequest) {
       service_date,
       dropoff_time,
       duration_hours,
-      quoted_price,
+      quoted_price: totalPrice,
       special_notes,
+      addons,
       booking_status: 'pending',
     })
     .select('*, vehicles(*)')
@@ -118,7 +127,8 @@ export async function POST(req: NextRequest) {
                 <tr><td>Date</td><td>${formattedDate}</td></tr>
                 <tr><td>Drop-off time</td><td>${dropoff_time}</td></tr>
                 ${duration_hours ? `<tr><td>Est. duration</td><td>${duration_hours} hours</td></tr>` : ''}
-                <tr class="price"><td>Quoted price</td><td>$${Number(quoted_price).toFixed(2)}*</td></tr>
+                ${addons.map(a => `<tr><td>Add-on</td><td>${a.name} (+$${a.price.toFixed(2)})</td></tr>`).join('')}
+                <tr class="price"><td>Quoted price</td><td>$${totalPrice.toFixed(2)}*</td></tr>
               </table>
               ${special_notes ? `<div class="sec-title">Your notes</div><p style="background:#f9f9f9;border-left:3px solid #ddd;padding:12px 16px;font-size:14px;color:#555">${special_notes}</p>` : ''}
               <div class="cta">

@@ -13,6 +13,11 @@ const sections = [
     title: 'Bookings',
     description: 'View all bookings, assign them to employees and update their status.',
   },
+  {
+    href: '/owner/pricing',
+    title: 'Content & Pricing',
+    description: 'Update service tier prices and descriptions, and manage add-on services.',
+  },
 ]
 
 export default async function OwnerDashboardPage() {

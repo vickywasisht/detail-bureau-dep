@@ -14,6 +14,7 @@ interface BookingDetail {
   quoted_price?: number
   final_price?: number
   special_notes?: string
+  addons?: { id: string; name: string; price: number }[]
   booking_status: string
   vehicles?: {
     year: string
@@ -149,6 +150,14 @@ export default function EmployeeBookingDetailPage() {
               </div>
             ))}
           </div>
+          {booking.addons && booking.addons.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Add-ons</p>
+              <ul className="text-gray-700 text-sm">
+                {booking.addons.map(a => <li key={a.id}>{a.name} (+${Number(a.price).toFixed(2)})</li>)}
+              </ul>
+            </div>
+          )}
           {booking.special_notes && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Customer notes</p>

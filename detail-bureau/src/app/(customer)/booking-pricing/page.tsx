@@ -40,6 +40,15 @@ function BookingPricingForm() {
   const specialNotes = searchParams.get('special_notes') ?? ''
 
   const [pricing, setPricing] = useState<Record<string, { price: number; duration_hours: string }>>({})
+  const [info, setInfo] = useState<Record<string, { description: string }>>({})
+
+  useEffect(() => {
+    fetch('/api/packages')
+      .then(r => r.json())
+      .then((d: Array<{ slug: string; description: string }>) => {
+        if (Array.isArray(d)) setInfo(Object.fromEntries(d.map(x => [x.slug, x])))
+      })
+  }, [])
 
   useEffect(() => {
     fetch(`/api/pricing?vehicle_type=${vehicleType}`)
@@ -93,7 +102,7 @@ function BookingPricingForm() {
                   <span className="text-gray-500 text-sm">*</span>
                 </div>
                 <p className="text-gray-500 text-xs mb-4">⏱ {p?.duration_hours ?? '—'} hours est.</p>
-                <p className="text-gray-600 text-sm mb-4">{pkg.description}</p>
+                <p className="text-gray-600 text-sm mb-4">{info[pkg.slug]?.description ?? pkg.description}</p>
                 <ul className="space-y-1.5 mb-6 flex-1">
                   {pkg.highlights.map(h => (
                     <li key={h} className="text-gray-600 text-sm flex gap-2">

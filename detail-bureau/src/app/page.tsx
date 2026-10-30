@@ -1,7 +1,19 @@
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
+import { adminClient } from '@/lib/supabase/admin'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [{ data: info }, { data: rows }] = await Promise.all([
+    adminClient.from('service_packages').select('slug, description'),
+    adminClient.from('service_pricing').select('package_slug, price'),
+  ])
+  const fromPrice = (slug: string, fallback: number) => {
+    const prices = rows?.filter(r => r.package_slug === slug).map(r => Number(r.price)) ?? []
+    return prices.length ? Math.min(...prices) : fallback
+  }
+  const describe = (slug: string, fallback: string) =>
+    info?.find(i => i.slug === slug)?.description ?? fallback
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
@@ -39,9 +51,9 @@ export default function HomePage() {
           <p className="text-gray-500 text-center mb-12">Pricing varies by vehicle type. Final price confirmed at drop-off.</p>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { name: 'Basic', subtitle: 'Express Shine', price: 'From $120', desc: 'Essential detailing for regular maintenance and light cleaning needs.', color: 'border-gray-200' },
-              { name: 'Value', subtitle: 'Complete Care', price: 'From $188', desc: 'A thorough inside-and-out detail that restores your vehicle\'s appearance.', color: 'border-black', popular: true },
-              { name: 'Premium', subtitle: 'Ultimate Protection', price: 'From $292', desc: 'The ultimate experience with ceramic coating and long-lasting protection.', color: 'border-gray-200' },
+              { name: 'Basic', subtitle: 'Express Shine', price: `From $${fromPrice('basic', 120)}`, desc: describe('basic', 'Essential detailing for regular maintenance and light cleaning needs.'), color: 'border-gray-200' },
+              { name: 'Value', subtitle: 'Complete Care', price: `From $${fromPrice('value', 188)}`, desc: describe('value', 'A thorough inside-and-out detail that restores your vehicle\'s appearance.'), color: 'border-black', popular: true },
+              { name: 'Premium', subtitle: 'Ultimate Protection', price: `From $${fromPrice('premium', 292)}`, desc: describe('premium', 'The ultimate experience with ceramic coating and long-lasting protection.'), color: 'border-gray-200' },
             ].map(pkg => (
               <div key={pkg.name} className={`bg-white border-2 ${pkg.color} rounded-2xl p-6 relative`}>
                 {pkg.popular && (

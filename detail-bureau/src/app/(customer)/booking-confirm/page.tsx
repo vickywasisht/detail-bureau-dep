@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -23,6 +23,20 @@ function BookingConfirmForm() {
   const [policyAccepted, setPolicyAccepted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [addons, setAddons] = useState<Array<{ id: string; name: string; description: string | null; price: number }>>([])
+  const [selected, setSelected] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/addons')
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setAddons(d) })
+  }, [])
+
+  const toggleAddon = (id: string) =>
+    setSelected(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]))
+
+  const chosen = addons.filter(a => selected.includes(a.id))
+  const total = Number(price) + chosen.reduce((n, a) => n + Number(a.price), 0)
 
   const formattedDate = dropoffDate
     ? new Date(dropoffDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
@@ -47,6 +61,7 @@ function BookingConfirmForm() {
         duration_hours: duration,
         quoted_price: Number(price),
         special_notes: specialNotes,
+        addon_ids: selected,
       }),
     })
 
@@ -80,7 +95,8 @@ function BookingConfirmForm() {
             ['Date', formattedDate],
             ['Drop-off time', dropoffTime],
             ...(duration ? [['Est. duration', `${duration} hours`] as [string, string]] : []),
-            ['Quoted price', `$${Number(price).toFixed(2)}*`],
+            ...chosen.map(a => [`+ ${a.name}`, `$${Number(a.price).toFixed(2)}`] as [string, string]),
+            ['Quoted price', `$${total.toFixed(2)}*`],
           ]},
           ...(specialNotes ? [{ title: 'Notes', rows: [['', specialNotes]] }] : []),
         ].map(section => (
@@ -97,6 +113,29 @@ function BookingConfirmForm() {
           </div>
         ))}
       </div>
+
+      {addons.length > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Add-ons (optional)</h2>
+          <div className="space-y-3">
+            {addons.map(a => (
+              <label key={a.id} className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(a.id)}
+                  onChange={() => toggleAddon(a.id)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300"
+                />
+                <span className="flex-1 text-sm text-gray-700">
+                  <span className="text-black">{a.name}</span>
+                  {a.description && <span className="block text-gray-500 text-xs">{a.description}</span>}
+                </span>
+                <span className="text-sm text-black">+${Number(a.price).toFixed(2)}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Cancellation Policy */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">

@@ -1,8 +1,10 @@
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
+import { adminClient } from '@/lib/supabase/admin'
 
 const PACKAGES = [
   {
+    slug: 'basic',
     name: 'Basic',
     subtitle: 'Express Shine',
     price: { Sedan: 120, SUV: 150, Truck: 160, Van: 160, Convertible: 130 },
@@ -27,6 +29,7 @@ const PACKAGES = [
     perfectFor: ['Weekly or bi-weekly maintenance', 'Light dirt and dust removal', 'Busy professionals on the go', 'Fleet vehicle upkeep'],
   },
   {
+    slug: 'value',
     name: 'Value',
     subtitle: 'Complete Care',
     price: { Sedan: 188, SUV: 230, Truck: 245, Van: 245, Convertible: 200 },
@@ -57,6 +60,7 @@ const PACKAGES = [
     perfectFor: ['Monthly or seasonal deep cleaning', 'Preparing vehicle for sale', 'Post-winter restoration', 'After road trips or family vacations'],
   },
   {
+    slug: 'premium',
     name: 'Premium',
     subtitle: 'Ultimate Protection',
     price: { Sedan: 292, SUV: 350, Truck: 370, Van: 370, Convertible: 310 },
@@ -91,7 +95,24 @@ const PACKAGES = [
 
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'Truck', 'Van', 'Convertible'] as const
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const [{ data: info }, { data: rows }] = await Promise.all([
+    adminClient.from('service_packages').select('slug, description'),
+    adminClient.from('service_pricing').select('package_slug, vehicle_type, price, duration_hours'),
+  ])
+
+  // fall back to the hardcoded values so the page never goes blank if a row is missing
+  const live = PACKAGES.map(pkg => {
+    const row = (type: string) =>
+      rows?.find(r => r.package_slug === pkg.slug && r.vehicle_type === type)
+    return {
+      ...pkg,
+      description: info?.find(i => i.slug === pkg.slug)?.description ?? pkg.description,
+      price: Object.fromEntries(VEHICLE_TYPES.map(t => [t, row(t)?.price ?? pkg.price[t]])),
+      duration: Object.fromEntries(VEHICLE_TYPES.map(t => [t, row(t)?.duration_hours ?? pkg.duration[t]])),
+    }
+  })
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
@@ -102,7 +123,7 @@ export default function PackagesPage() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {PACKAGES.map(pkg => (
+          {live.map(pkg => (
             <div key={pkg.name} className={`border-2 rounded-2xl overflow-hidden relative ${pkg.popular ? 'border-black' : 'border-gray-200'}`}>
               {pkg.popular && (
                 <div className="bg-black text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
