@@ -8,6 +8,11 @@ const sections = [
     title: 'Employees',
     description: 'View, add, deactivate and assign roles to employee accounts.',
   },
+  {
+    href: '/owner/bookings',
+    title: 'Bookings',
+    description: 'View all bookings, assign them to employees and update their status.',
+  },
 ]
 
 export default async function OwnerDashboardPage() {
