@@ -2,12 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import ServiceDetailsButton from '@/components/ServiceDetails'
 
 interface Booking {
   id: string
+  package_slug: string
   package_label: string
   service_date: string
   dropoff_time: string
+  duration_hours?: string | null
+  quoted_price?: number | null
+  final_price?: number | null
+  special_notes?: string | null
+  addons?: { id: string; name: string; description?: string | null; price: number }[] | null
   booking_status: string
   employee_id: string | null
   vehicles?: { year: string; make: string; model: string }
@@ -156,6 +163,7 @@ export default function OwnerBookingsPage() {
               <th className="p-2">Time</th>
               <th className="p-2">Status</th>
               <th className="p-2">Assigned to</th>
+              <th className="p-2" />
             </tr>
           </thead>
           <tbody>
@@ -164,11 +172,19 @@ export default function OwnerBookingsPage() {
               const assigned = pending[b.id]?.employee_id !== undefined
                 ? pending[b.id].employee_id
                 : b.employee_id
+              const assignedEmp = employees.find(emp => emp.id === assigned)
               return (
                 <tr key={b.id} className={`border-b border-gray-200 ${pending[b.id] ? 'bg-yellow-50' : ''}`}>
                   <td className="p-2">{b.customers?.first_name} {b.customers?.last_name}</td>
                   <td className="p-2">{b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model}</td>
-                  <td className="p-2">{b.package_label}</td>
+                  <td className="p-2">
+                    {b.package_label}
+                    {b.addons && b.addons.length > 0 && (
+                      <span className="block text-xs text-gray-600">
+                        +{b.addons.length} add-on{b.addons.length === 1 ? '' : 's'}
+                      </span>
+                    )}
+                  </td>
                   <td className="p-2">{formatDate(b.service_date)}</td>
                   <td className="p-2">{b.dropoff_time}</td>
                   <td className="p-2">
@@ -194,12 +210,25 @@ export default function OwnerBookingsPage() {
                         ))}
                     </select>
                   </td>
+                  <td className="p-2">
+                    <ServiceDetailsButton
+                      service={{
+                        ...b,
+                        booking_status: status,
+                        customer: `${b.customers?.first_name ?? ''} ${b.customers?.last_name ?? ''}`.trim(),
+                        vehicle: `${b.vehicles?.year ?? ''} ${b.vehicles?.make ?? ''} ${b.vehicles?.model ?? ''}`.trim(),
+                        assignedTo: assignedEmp
+                          ? `${assignedEmp.first_name} ${assignedEmp.last_name}`
+                          : 'Unassigned',
+                      }}
+                    />
+                  </td>
                 </tr>
               )
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-4 text-center text-gray-700">
+                <td colSpan={8} className="p-4 text-center text-gray-700">
                   {bookings.length === 0 ? 'No bookings yet.' : 'No bookings match your filters.'}
                 </td>
               </tr>

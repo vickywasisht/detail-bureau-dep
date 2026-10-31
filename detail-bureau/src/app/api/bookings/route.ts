@@ -35,10 +35,10 @@ export async function POST(req: NextRequest) {
   }
 
   // add-on prices are looked up server-side so a customer can't send their own
-  let addons: { id: string; name: string; price: number }[] = []
+  let addons: { id: string; name: string; description: string | null; price: number }[] = []
   if (Array.isArray(addon_ids) && addon_ids.length > 0) {
-    const { data } = await adminClient.from('addons').select('id, name, price').in('id', addon_ids)
-    addons = (data ?? []).map(a => ({ id: a.id, name: a.name, price: Number(a.price) }))
+    const { data } = await adminClient.from('addons').select('id, name, description, price').in('id', addon_ids)
+    addons = (data ?? []).map(a => ({ id: a.id, name: a.name, description: a.description, price: Number(a.price) }))
   }
   const totalPrice = Number(quoted_price) + addons.reduce((n, a) => n + a.price, 0)
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import ServiceDetailsButton from '@/components/ServiceDetails'
 
 const POLICY_TEXT = `Cancellations made 24+ hours before your scheduled drop-off will receive a full refund of any deposit paid. Cancellations within 24 hours may be subject to a cancellation fee. No-shows will be charged 50% of the quoted service price. Final pricing is confirmed at drop-off based on vehicle condition and may differ from the quoted price.`
 
@@ -112,6 +113,24 @@ function BookingConfirmForm() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mb-4">
+        <ServiceDetailsButton
+          service={{
+            package_slug: packageSlug,
+            package_label: packageLabel,
+            service_date: dropoffDate,
+            dropoff_time: dropoffTime,
+            duration_hours: duration,
+            quoted_price: total,
+            special_notes: specialNotes,
+            addons: chosen,
+            vehicle: vehicleType,
+          }}
+          label="View full package & add-on details"
+          className="text-blue-600 hover:text-blue-700 text-sm"
+        />
       </div>
 
       {addons.length > 0 && (
