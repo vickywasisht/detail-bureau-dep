@@ -40,12 +40,13 @@ export default function LoginPage() {
 
   return (
     <div className="bg-white rounded-2xl p-8 border border-gray-200">
-      <h2 className="text-xl font-semibold text-black mb-6">Sign in</h2>
+      <h1 className="text-xl font-semibold text-black mb-6">Sign in</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email</label>
           <input
+            id="email"
             name="email"
             type="email"
             value={form.email}
@@ -57,8 +58,9 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
           <input
+            id="password"
             name="password"
             type="password"
             value={form.password}
@@ -84,16 +86,16 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="text-center text-gray-500 text-sm mt-6">
+      <p className="text-center text-gray-600 text-sm mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-blue-400 hover:text-blue-300">
+        <Link href="/signup" className="text-blue-700 underline hover:text-blue-900">
           Create one
         </Link>
       </p>
 
       <p className="text-center text-gray-600 text-xs mt-3">
         Are you an employee?{' '}
-        <Link href="/employee/login" className="text-gray-400 hover:text-gray-300">
+        <Link href="/employee-login" className="text-gray-700 underline hover:text-black">
           Employee login →
         </Link>
       </p>

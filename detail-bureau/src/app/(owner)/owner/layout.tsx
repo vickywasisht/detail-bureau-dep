@@ -1,5 +1,11 @@
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import { requireOwner } from '@/lib/employee-auth'
+
+export const metadata: Metadata = {
+  title: 'Owner Portal',
+  robots: { index: false, follow: false },
+}
 
 export default async function OwnerLayout({
   children,
@@ -11,7 +17,7 @@ export default async function OwnerLayout({
 
   return (
     <div className="min-h-screen bg-white text-black [&_input]:text-black [&_select]:text-black [&_input]:bg-white [&_select]:bg-white">
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main id="main-content" tabIndex={-1} className="max-w-6xl mx-auto px-4 py-8">
         {children}
       </main>
     </div>

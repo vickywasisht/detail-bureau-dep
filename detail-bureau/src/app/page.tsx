@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase/admin'
+import { buildLocalBusinessJsonLd } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: { absolute: 'The Detail Bureau | Professional Auto Detailing & Ceramic Coating' },
+  description:
+    'Professional auto detailing from express shine to full ceramic coating. View packages and pricing, then book your vehicle online with The Detail Bureau.',
+  alternates: { canonical: '/' },
+}
 
 export default async function HomePage() {
   const [{ data: info }, { data: rows }] = await Promise.all([
@@ -17,7 +26,12 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: buildLocalBusinessJsonLd() }}
+      />
 
+      <main id="main-content" tabIndex={-1}>
       {/* Hero */}
       <section className="bg-black text-white py-28 px-6 text-center">
         <p className="text-sm tracking-widest uppercase text-gray-400 mb-4">Professional Auto Detailing</p>
@@ -62,14 +76,14 @@ export default async function HomePage() {
                   </span>
                 )}
                 <h3 className="text-xl font-bold text-black">{pkg.name}</h3>
-                <p className="text-gray-500 text-sm mb-3">{pkg.subtitle}</p>
-                <p className="text-3xl font-bold text-black mb-4">{pkg.price}<span className="text-sm font-normal text-gray-400">*</span></p>
+                <p className="text-gray-600 text-sm mb-3">{pkg.subtitle}</p>
+                <p className="text-3xl font-bold text-black mb-4">{pkg.price}<span className="text-sm font-normal text-gray-600">*</span></p>
                 <p className="text-gray-600 text-sm mb-6">{pkg.desc}</p>
                 <Link
-                  href="/packages"
+                  href={`/packages#${pkg.name.toLowerCase()}`}
                   className="block text-center border border-black text-black font-medium py-2 rounded-lg hover:bg-black hover:text-white transition-colors text-sm"
                 >
-                  Learn More
+                  View {pkg.name} details
                 </Link>
               </div>
             ))}
@@ -88,7 +102,7 @@ export default async function HomePage() {
               { icon: '📅', title: 'Easy Online Booking', desc: 'Book your service in minutes and track your history online.' },
             ].map(item => (
               <div key={item.title}>
-                <div className="text-4xl mb-4">{item.icon}</div>
+                <div className="text-4xl mb-4" aria-hidden="true">{item.icon}</div>
                 <h3 className="font-semibold text-black mb-2">{item.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
@@ -108,9 +122,10 @@ export default async function HomePage() {
           Get Started
         </Link>
       </section>
+      </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-8 px-6 text-center text-gray-400 text-sm">
+      <footer className="bg-white border-t border-gray-100 py-8 px-6 text-center text-gray-600 text-sm">
         <p>© {new Date().getFullYear()} The Detail Bureau. All rights reserved.</p>
         <div className="flex justify-center gap-6 mt-3">
           <Link href="/about" className="hover:text-black transition-colors">About</Link>

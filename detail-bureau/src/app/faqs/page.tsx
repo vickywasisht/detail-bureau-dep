@@ -44,7 +44,7 @@ export default function FAQsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <main className="w-full max-w-2xl mx-auto px-6 py-16">
+      <main id="main-content" tabIndex={-1} className="w-full max-w-2xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-black mb-4">Frequently Asked Questions</h1>
           <p className="text-gray-500">Everything you need to know before booking.</p>
@@ -53,15 +53,25 @@ export default function FAQsPage() {
         <div className="space-y-2">
           {FAQS.map((faq, i) => (
             <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
-              >
-                <span className="font-medium text-black text-sm">{faq.q}</span>
-                <span className="text-gray-400 ml-4 shrink-0">{open === i ? '−' : '+'}</span>
-              </button>
+              <h2 className="m-0">
+                <button
+                  type="button"
+                  id={`faq-button-${i}`}
+                  aria-expanded={open === i}
+                  aria-controls={`faq-panel-${i}`}
+                  onClick={() => setOpen(open === i ? null : i)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-medium text-black text-sm">{faq.q}</span>
+                  <span aria-hidden="true" className="text-gray-600 ml-4 shrink-0">{open === i ? '−' : '+'}</span>
+                </button>
+              </h2>
 
               <div
+                id={`faq-panel-${i}`}
+                role="region"
+                aria-labelledby={`faq-button-${i}`}
+                inert={open !== i}
                 className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${open === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
                   }`}
               >

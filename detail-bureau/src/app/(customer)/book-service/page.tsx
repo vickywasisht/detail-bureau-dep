@@ -61,17 +61,17 @@ function BookServiceForm() {
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Your Information</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">First name</label>
-              <input value={customer?.first_name ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
+              <label htmlFor="first_name" className="block text-xs text-gray-600 mb-1">First name</label>
+              <input id="first_name" value={customer?.first_name ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Last name</label>
-              <input value={customer?.last_name ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
+              <label htmlFor="last_name" className="block text-xs text-gray-600 mb-1">Last name</label>
+              <input id="last_name" value={customer?.last_name ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
             </div>
           </div>
           <div className="mt-3">
-            <label className="block text-xs text-gray-600 mb-1">Email</label>
-            <input value={customer?.email ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
+            <label htmlFor="email" className="block text-xs text-gray-600 mb-1">Email</label>
+            <input id="email" value={customer?.email ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
           </div>
         </div>
 
@@ -80,12 +80,12 @@ function BookServiceForm() {
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Vehicle</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Vehicle</label>
-              <input value={vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
+              <label htmlFor="vehicle_name" className="block text-xs text-gray-600 mb-1">Vehicle</label>
+              <input id="vehicle_name" value={vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Type</label>
-              <input value={vehicle?.vehicle_type ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
+              <label htmlFor="vehicle_type" className="block text-xs text-gray-600 mb-1">Type</label>
+              <input id="vehicle_type" value={vehicle?.vehicle_type ?? ''} readOnly className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-gray-600 text-sm cursor-not-allowed" />
             </div>
           </div>
         </div>
@@ -95,12 +95,12 @@ function BookServiceForm() {
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Preferred Drop-off</h2>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Date <span className="text-red-600">*</span></label>
-              <input type="date" name="dropoff_date" value={form.dropoff_date} onChange={handleChange} min={today} required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black" />
+              <label htmlFor="dropoff_date" className="block text-xs text-gray-600 mb-1">Date <span className="text-red-600">*</span></label>
+              <input id="dropoff_date" type="date" name="dropoff_date" value={form.dropoff_date} onChange={handleChange} min={today} required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black" />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Time <span className="text-red-600">*</span></label>
-              <select name="dropoff_time" value={form.dropoff_time} onChange={handleChange} required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black">
+              <label htmlFor="dropoff_time" className="block text-xs text-gray-600 mb-1">Time <span className="text-red-600">*</span></label>
+              <select id="dropoff_time" name="dropoff_time" value={form.dropoff_time} onChange={handleChange} required className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black">
                 <option value="">— Select —</option>
                 {TIME_SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
@@ -111,7 +111,7 @@ function BookServiceForm() {
         {/* Notes */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Additional Notes</h2>
-          <textarea name="special_notes" value={form.special_notes} onChange={handleChange} rows={3} placeholder="Any specific concerns or requests..." className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black resize-none" />
+          <textarea aria-label="Additional notes" name="special_notes" value={form.special_notes} onChange={handleChange} rows={3} placeholder="Any specific concerns or requests..." className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:border-black resize-none" />
         </div>
 
         {error && <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}

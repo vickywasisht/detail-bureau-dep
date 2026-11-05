@@ -33,16 +33,16 @@ export default function OwnerLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-black tracking-widest uppercase">
+          <p className="text-xl font-semibold text-black tracking-widest uppercase">
             The Detail Bureau
-          </h1>
+          </p>
           <p className="text-gray-600 text-sm mt-1">Owner Portal</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-8">
-          <h2 className="text-lg font-semibold text-black mb-6">Owner Sign In</h2>
+          <h1 className="text-lg font-semibold text-black mb-6">Owner Sign In</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="username" className="block text-sm text-gray-700 mb-1">Username</label>
@@ -83,6 +83,6 @@ export default function OwnerLoginPage() {
           </form>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

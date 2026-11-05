@@ -1,11 +1,19 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description:
+    'The Detail Bureau is a professional auto detailing service restoring and protecting vehicles with premium products and expert technicians.',
+  alternates: { canonical: '/about' },
+}
 
 export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <main className="max-w-3xl mx-auto px-6 py-20">
+      <main id="main-content" tabIndex={-1} className="max-w-3xl mx-auto px-6 py-20">
         <h1 className="text-4xl font-bold text-black mb-6">About The Detail Bureau</h1>
         <p className="text-gray-600 text-lg leading-relaxed mb-6">
           The Detail Bureau is a professional auto detailing service dedicated to restoring and protecting vehicles to their factory-fresh condition. We combine premium products with expert techniques to deliver results that last.
