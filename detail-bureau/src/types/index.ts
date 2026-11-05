@@ -55,6 +55,8 @@ export interface Booking {
   final_price?: number
   special_notes?: string
   booking_status: BookingStatus
+  payment_status: 'unpaid' | 'deposit_paid' | 'paid' | 'refunded'
+  amount_paid: number
   email_sent: boolean
   created_at: string
   updated_at: string

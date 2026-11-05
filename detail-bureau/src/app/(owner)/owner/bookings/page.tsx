@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
+import { PAYMENT_LABELS, type PaymentStatus } from '@/lib/payments'
 
 interface Booking {
   id: string
@@ -16,6 +17,8 @@ interface Booking {
   special_notes?: string | null
   addons?: { id: string; name: string; description?: string | null; price: number }[] | null
   booking_status: string
+  payment_status?: PaymentStatus
+  amount_paid?: number | null
   employee_id: string | null
   vehicles?: { year: string; make: string; model: string }
   customers?: { first_name: string; last_name: string }
@@ -162,6 +165,7 @@ export default function OwnerBookingsPage() {
               <th className="p-2">Date</th>
               <th className="p-2">Time</th>
               <th className="p-2">Status</th>
+              <th className="p-2">Payment</th>
               <th className="p-2">Assigned to</th>
               <th className="p-2" />
             </tr>
@@ -196,6 +200,14 @@ export default function OwnerBookingsPage() {
                       {STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                   </td>
+                  <td className="p-2 text-sm">
+                    {PAYMENT_LABELS[b.payment_status ?? 'unpaid']}
+                    {Number(b.amount_paid) > 0 && (
+                      <span className="block text-xs text-gray-600">
+                        ${Number(b.amount_paid).toFixed(2)} of ${Number(b.quoted_price ?? 0).toFixed(2)}
+                      </span>
+                    )}
+                  </td>
                   <td className="p-2">
                     <select
                       value={assigned ?? ''}
@@ -228,7 +240,7 @@ export default function OwnerBookingsPage() {
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="p-4 text-center text-gray-700">
+                <td colSpan={9} className="p-4 text-center text-gray-700">
                   {bookings.length === 0 ? 'No bookings yet.' : 'No bookings match your filters.'}
                 </td>
               </tr>

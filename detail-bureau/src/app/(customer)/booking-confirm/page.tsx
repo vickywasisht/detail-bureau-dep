@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
+import { DEPOSIT_PERCENT, depositAmount, money } from '@/lib/payments'
 
 const POLICY_TEXT = `Cancellations made 24+ hours before your scheduled drop-off will receive a full refund of any deposit paid. Cancellations within 24 hours may be subject to a cancellation fee. No-shows will be charged 50% of the quoted service price. Final pricing is confirmed at drop-off based on vehicle condition and may differ from the quoted price.`
 
@@ -11,17 +12,18 @@ function BookingConfirmForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const vehicleId    = searchParams.get('vehicle_id') ?? ''
-  const vehicleType  = searchParams.get('vehicle_type') ?? ''
-  const dropoffDate  = searchParams.get('dropoff_date') ?? ''
-  const dropoffTime  = searchParams.get('dropoff_time') ?? ''
+  const vehicleId = searchParams.get('vehicle_id') ?? ''
+  const vehicleType = searchParams.get('vehicle_type') ?? ''
+  const dropoffDate = searchParams.get('dropoff_date') ?? ''
+  const dropoffTime = searchParams.get('dropoff_time') ?? ''
   const specialNotes = searchParams.get('special_notes') ?? ''
-  const packageSlug  = searchParams.get('package_slug') ?? ''
+  const packageSlug = searchParams.get('package_slug') ?? ''
   const packageLabel = searchParams.get('package_label') ?? ''
-  const price        = searchParams.get('price') ?? '0'
-  const duration     = searchParams.get('duration') ?? ''
+  const price = searchParams.get('price') ?? '0'
+  const duration = searchParams.get('duration') ?? ''
 
   const [policyAccepted, setPolicyAccepted] = useState(false)
+  const [payOption, setPayOption] = useState<'deposit' | 'full' | 'later'>('deposit')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [addons, setAddons] = useState<Array<{ id: string; name: string; description: string | null; price: number }>>([])
@@ -73,8 +75,27 @@ function BookingConfirmForm() {
       return
     }
 
-    router.push(`/vehicles/${vehicleId}?booked=true`)
+    if (payOption === 'later') {
+      router.push(`/vehicles/${vehicleId}?booked=true`)
+      return
+    }
+
+    // Booking is saved -> send the customer to Stripe to pay
+    const payRes = await fetch('/api/payments/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ booking_id: data.id, type: payOption }),
+    })
+    const payData = await payRes.json().catch(() => ({}))
+    if (!payRes.ok || !payData.url) {
+      // booking exists; the customer can pay from the vehicle page
+      router.push(`/vehicles/${vehicleId}?booked=true&payment=error`)
+      return
+    }
+    window.location.href = payData.url
   }
+
+  const payNowAmount = payOption === 'deposit' ? depositAmount(total) : payOption === 'full' ? total : 0
 
   return (
     <div className="max-w-lg mx-auto">
@@ -91,14 +112,16 @@ function BookingConfirmForm() {
 
       <div className="space-y-3 mb-6">
         {[
-          { title: 'Service', rows: [
-            ['Package', packageLabel],
-            ['Date', formattedDate],
-            ['Drop-off time', dropoffTime],
-            ...(duration ? [['Est. duration', `${duration} hours`] as [string, string]] : []),
-            ...chosen.map(a => [`+ ${a.name}`, `$${Number(a.price).toFixed(2)}`] as [string, string]),
-            ['Quoted price', `$${total.toFixed(2)}*`],
-          ]},
+          {
+            title: 'Service', rows: [
+              ['Package', packageLabel],
+              ['Date', formattedDate],
+              ['Drop-off time', dropoffTime],
+              ...(duration ? [['Est. duration', `${duration} hours`] as [string, string]] : []),
+              ...chosen.map(a => [`+ ${a.name}`, `$${Number(a.price).toFixed(2)}`] as [string, string]),
+              ['Quoted price', `$${total.toFixed(2)}*`],
+            ]
+          },
           ...(specialNotes ? [{ title: 'Notes', rows: [['', specialNotes]] }] : []),
         ].map(section => (
           <div key={section.title} className="bg-gray-50 border border-gray-200 rounded-xl p-5">
@@ -156,6 +179,31 @@ function BookingConfirmForm() {
         </div>
       )}
 
+      {/* Payment */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
+        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Payment</h2>
+        <div className="space-y-3">
+          {([
+            ['deposit', `Pay a ${DEPOSIT_PERCENT}% deposit now`, `${money(depositAmount(total))} today, the rest at drop-off`],
+            ['full', 'Pay in full now', money(total)],
+            ['later', 'Pay at drop-off', 'No payment today'],
+          ] as const).map(([value, title, sub]) => (
+            <label key={value} className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="radio" name="payOption" value={value}
+                checked={payOption === value} onChange={() => setPayOption(value)}
+                className="mt-0.5 w-4 h-4"
+              />
+              <span className="flex-1 text-sm text-gray-700">
+                <span className="text-black">{title}</span>
+                <span className="block text-gray-500 text-xs">{sub}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="text-gray-500 text-xs mt-4">Payments are processed securely by Stripe. We never see or store your card details.</p>
+      </div>
+
       {/* Cancellation Policy */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Cancellation & Refund Policy</h2>
@@ -184,8 +232,7 @@ function BookingConfirmForm() {
         disabled={!policyAccepted || loading}
         className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
       >
-        {loading ? 'Confirming...' : 'Confirm Booking'}
-      </button>
+        {loading ? 'Confirming...' : payOption === 'later' ? 'Confirm Booking' : `Confirm & Pay ${money(payNowAmount)}`}      </button>
     </div>
   )
 }

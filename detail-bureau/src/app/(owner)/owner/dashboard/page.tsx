@@ -18,6 +18,11 @@ const sections = [
     title: 'Content & Pricing',
     description: 'Update service tier prices and descriptions, and manage add-on services.',
   },
+    {
+    href: '/owner/reviews',
+    title: 'Reviews',
+    description: 'See customer reviews, hide any from the website, and add testimonials.',
+  },
 ]
 
 export default async function OwnerDashboardPage() {

@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // ── Customer route protection
-  const customerRoutes = ['/dashboard', '/vehicles', '/book-service', '/booking-pricing', '/booking-confirm']
+  const customerRoutes = ['/dashboard', '/vehicles', '/book-service', '/booking-pricing', '/booking-confirm', '/write-review']
   const isCustomerRoute = customerRoutes.some(r => path.startsWith(r))
   if (isCustomerRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
