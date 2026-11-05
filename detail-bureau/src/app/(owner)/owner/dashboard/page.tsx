@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { requireOwner } from '@/lib/employee-auth'
 
@@ -26,9 +27,18 @@ export default async function OwnerDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Owner Dashboard</h1>
-        <p className="text-gray-700">Welcome, {owner.username}</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Owner Dashboard</h1>
+          <p className="text-gray-700">Welcome, {owner.username}</p>
+        </div>
+        <form action={async () => {
+          'use server'
+          ;(await cookies()).delete('employee_token')
+          redirect('/owner-login')
+        }}>
+          <button className="rounded bg-black px-4 py-2 text-white">Log out</button>
+        </form>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
