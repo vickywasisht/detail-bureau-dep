@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 import { adminClient } from './supabase/admin'
@@ -8,7 +9,8 @@ export interface EmployeePayload {
   role: 'owner' | 'employee'
 }
 
-export async function getEmployeeFromToken(): Promise<EmployeePayload | null> {
+// cache() dedupes the DB check when a layout and page both call this in one request
+export const getEmployeeFromToken = cache(async (): Promise<EmployeePayload | null> => {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('employee_token')?.value
@@ -23,4 +25,9 @@ export async function getEmployeeFromToken(): Promise<EmployeePayload | null> {
   } catch {
     return null
   }
+})
+
+export async function requireOwner() {
+  const e = await getEmployeeFromToken()
+  return e?.role === 'owner' ? e : null
 }

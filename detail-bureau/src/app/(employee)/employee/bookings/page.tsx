@@ -37,11 +37,12 @@ export default async function EmployeeBookingsPage() {
   const { data: bookings } = await adminClient
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email)')
+    .eq('employee_id', employee.id)
     .order('service_date', { ascending: false })
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-black mb-8">All Bookings</h1>
+      <h1 className="text-2xl font-semibold text-black mb-8">My Bookings</h1>
       <div className="space-y-3">
         {bookings?.map((b: BookingListItem) => (
           <Link
@@ -63,7 +64,7 @@ export default async function EmployeeBookingsPage() {
                   {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.package_label}
                 </p>
                 <p className="text-gray-500 text-sm mt-0.5">
-                  {new Date(b.service_date).toLocaleDateString('en-US', {
+                  {new Date(`${b.service_date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', {
                     weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
                   })} at {b.dropoff_time}
                 </p>
