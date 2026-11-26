@@ -1,32 +1,171 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #ffffff;
+  --surface-muted: #f9fafb;
+  --text-muted: #4b5563;
+  --border: #e5e7eb;
+  --primary: #111827;
+  --primary-foreground: #ffffff;
+  --focus: #1d4ed8;
+  --success: #166534;
+  --success-surface: #f0fdf4;
+  --warning: #854d0e;
+  --warning-surface: #fefce8;
+  --danger: #b91c1c;
+  --danger-surface: #fef2f2;
+  --info: #1e40af;
+  --info-surface: #eff6ff;
+  --space-page: clamp(1rem, 4vw, 2rem);
+  --card-radius: 1rem;
+  --control-radius: 0.5rem;
+  --pill-radius: 9999px;
+  --card-shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-info: var(--info);
+  --color-info-surface: var(--info-surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --spacing-page: var(--space-page);
+  --radius-card: var(--card-radius);
+  --radius-control: var(--control-radius);
+  --radius-pill: var(--pill-radius);
+  --shadow-card: var(--card-shadow);
 }
 
 /* Unlayered so it wins over Tailwind's focus:outline-none on form fields */
 :focus-visible {
-  outline: 2px solid #1d4ed8;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+.ui-card {
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+.ui-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  padding: 0.625rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.ui-button:disabled,
+.ui-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-button--primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.ui-button--primary:hover:not(:disabled, [aria-disabled='true']) {
+  background: #374151;
+}
+
+.ui-button--secondary {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+}
+
+.ui-button--secondary:hover:not(:disabled, [aria-disabled='true']) {
+  background: var(--surface-muted);
+}
+
+.ui-input {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--control-radius);
+  background: var(--surface);
+  padding: 0.625rem 0.75rem;
+  color: var(--foreground);
+  font: inherit;
+}
+
+.ui-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ui-input:disabled {
+  cursor: not-allowed;
+  background: var(--surface-muted);
+  opacity: 0.7;
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--pill-radius);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.ui-badge--success {
+  background: var(--success-surface);
+  color: var(--success);
+}
+
+.ui-badge--warning {
+  background: var(--warning-surface);
+  color: var(--warning);
+}
+
+.ui-badge--danger {
+  background: var(--danger-surface);
+  color: var(--danger);
+}
+
+.ui-badge--info {
+  background: var(--info-surface);
+  color: var(--info);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button {
+    transition: none;
+  }
 }
