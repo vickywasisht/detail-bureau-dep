@@ -13,7 +13,7 @@ interface Employee {
 }
 
 const emptyForm = { username: '', first_name: '', last_name: '', email: '', password: '', role: 'employee' }
-const inputClass = 'border border-gray-300 p-2 rounded w-full placeholder-gray-500'
+const inputClass = 'ui-input'
 
 export default function OwnerEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
@@ -115,16 +115,20 @@ export default function OwnerEmployeesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/owner/dashboard" className="text-sm text-gray-700 underline">
+        <Link href="/owner/dashboard" className="text-sm text-text-muted underline">
           ← Back to dashboard
         </Link>
-        <div className="mt-2 flex items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold">Employees</h1>
+        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-1 text-sm font-semibold uppercase tracking-wider text-violet-700">Team management</p>
+            <h1 className="text-3xl font-bold text-foreground">Employees</h1>
+            <p className="mt-1 text-sm text-text-muted">Manage the people who make every detail shine.</p>
+          </div>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-black text-white rounded px-4 py-2"
+            className="dashboard-action self-start sm:self-auto"
           >
-            Create employee
+            <span aria-hidden="true">＋</span> Create employee
           </button>
         </div>
       </div>
@@ -137,66 +141,73 @@ export default function OwnerEmployeesPage() {
         className={`${inputClass} max-w-md`}
       />
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={saveChanges}
           disabled={pendingCount === 0 || savingChanges}
-          className="rounded bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="ui-button ui-button--primary"
+          aria-busy={savingChanges}
         >
           {savingChanges ? 'Saving...' : 'Save changes'}
         </button>
         <button
           onClick={() => setPending({})}
           disabled={pendingCount === 0 || savingChanges}
-          className="rounded border border-gray-300 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="ui-button ui-button--secondary"
         >
           Undo all changes
         </button>
         {pendingCount > 0 && (
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-text-muted">
             {pendingCount} unsaved {pendingCount === 1 ? 'change' : 'changes'}
           </span>
         )}
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b border-gray-300">
-            <th className="p-2">Name</th>
-            <th className="p-2">Username</th>
-            <th className="p-2">Role</th>
-            <th className="p-2">Status</th>
-            <th className="p-2" />
-          </tr>
-        </thead>
-        <tbody>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="dashboard-table min-w-[680px] text-left text-sm">
+          <thead>
+            <tr>
+              <th className="p-3">Name</th>
+              <th className="p-3">Username</th>
+              <th className="p-3">Role</th>
+              <th className="p-3">Status</th>
+              <th className="p-3" />
+            </tr>
+          </thead>
+          <tbody>
           {filtered.map(emp => {
             const role = pending[emp.id]?.role ?? emp.role
             const isActive = pending[emp.id]?.is_active ?? emp.is_active
             return (
               <tr
                 key={emp.id}
-                className={`border-b border-gray-200 ${pending[emp.id] ? 'bg-yellow-50' : ''}`}
+                className={pending[emp.id] ? 'table-row-pending' : ''}
               >
-                <td className="p-2">{emp.first_name} {emp.last_name}</td>
-                <td className="p-2">{emp.username}</td>
-                <td className="p-2">
+                <td className="p-3 font-semibold text-foreground">{emp.first_name} {emp.last_name}</td>
+                <td className="p-3 text-text-muted">{emp.username}</td>
+                <td className="p-3">
                   <select
                     value={role}
                     onChange={e => stage(emp, { role: e.target.value as Employee['role'] })}
-                    className="border border-gray-300 p-1 rounded"
+                    className="ui-input ui-input--compact"
+                    aria-label={`Role for ${emp.first_name} ${emp.last_name}`}
                   >
                     <option value="employee">Employee</option>
                     <option value="owner">Owner</option>
                   </select>
                 </td>
-                <td className="p-2">{isActive ? 'Active' : 'Deactivated'}</td>
-                <td className="p-2">
+                <td className="p-3">
+                  <span className={`ui-badge ${isActive ? 'ui-badge--success' : 'ui-badge--neutral'}`}>
+                    {isActive ? 'Active' : 'Deactivated'}
+                  </span>
+                </td>
+                <td className="p-3">
                   <button
                     onClick={() => stage(emp, { is_active: !isActive })}
-                    className="underline"
+                    className="text-sm font-semibold text-primary underline underline-offset-2 hover:opacity-75"
                   >
                     {isActive ? 'Deactivate' : 'Reactivate'}
                   </button>
@@ -206,13 +217,14 @@ export default function OwnerEmployeesPage() {
           })}
           {filtered.length === 0 && (
             <tr>
-              <td colSpan={5} className="p-4 text-center text-gray-700">
+              <td colSpan={5} className="p-8 text-center text-text-muted">
                 {employees.length === 0 ? 'No employees yet.' : 'No employees match your search.'}
               </td>
             </tr>
           )}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
 
       {showModal && (
         <div
@@ -223,14 +235,14 @@ export default function OwnerEmployeesPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-employee-title"
-            className="w-full max-w-md rounded-lg bg-white p-6 text-black shadow-xl"
+            className="ui-card w-full max-w-md bg-surface p-6 text-foreground shadow-xl"
             onClick={e => e.stopPropagation()}
           >
-            <h2 id="create-employee-title" className="text-xl font-semibold mb-4">
+            <h2 id="create-employee-title" className="mb-4 text-xl font-bold">
               Create employee
             </h2>
             <form onSubmit={create} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <input required placeholder="First name" value={form.first_name}
                   onChange={e => setForm({ ...form, first_name: e.target.value })} className={inputClass} />
                 <input required placeholder="Last name" value={form.last_name}
@@ -248,15 +260,15 @@ export default function OwnerEmployeesPage() {
                 <option value="owner">Owner</option>
               </select>
 
-              {modalError && <p className="text-red-600 text-sm">{modalError}</p>}
+              {modalError && <p role="alert" className="ui-alert ui-alert--error">{modalError}</p>}
 
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={closeModal}
-                  className="rounded border border-gray-300 px-4 py-2">
+                  className="ui-button ui-button--secondary">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+                  className="ui-button ui-button--primary" aria-busy={saving}>
                   {saving ? 'Creating...' : 'Create'}
                 </button>
               </div>

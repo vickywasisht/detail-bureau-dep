@@ -15,7 +15,7 @@ interface Review {
   created_at: string
 }
 
-const inputClass = 'border border-gray-300 p-2 rounded w-full placeholder-gray-500'
+const inputClass = 'ui-input'
 const empty = { reviewer_name: '', rating: '5', title: '', comment: '' }
 const json = { 'Content-Type': 'application/json' }
 
@@ -72,18 +72,19 @@ export default function OwnerReviewsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <Link href="/owner/dashboard" className="text-sm text-gray-700 underline">← Back to dashboard</Link>
-        <h1 className="mt-2 text-2xl font-bold">Reviews</h1>
-        <p className="text-gray-700 text-sm">Customer reviews appear on the site right away. Hide any that shouldn&apos;t be public.</p>
+        <Link href="/owner/dashboard" className="text-sm text-text-muted underline">← Back to dashboard</Link>
+        <p className="mb-1 mt-3 text-sm font-semibold uppercase tracking-wider text-rose-700">Customer love</p>
+        <h1 className="text-3xl font-bold text-foreground">Reviews</h1>
+        <p className="mt-1 text-sm text-text-muted">Customer reviews appear on the site right away. Hide any that shouldn&apos;t be public.</p>
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
-      <form onSubmit={addTestimonial} className="border border-gray-300 rounded-lg p-5 space-y-3 max-w-xl">
-        <h2 className="font-semibold">Add a testimonial</h2>
-        <p className="text-xs text-gray-600">Only add feedback a real customer gave you, with their permission.</p>
-        <div className="grid grid-cols-3 gap-3">
-          <input className={`${inputClass} col-span-2`} placeholder="Customer name (e.g. Sam K.)" value={form.reviewer_name}
+      <form onSubmit={addTestimonial} className="ui-card max-w-xl space-y-3 border-rose-100 bg-gradient-to-br from-rose-50/60 to-white p-5">
+        <h2 className="font-bold text-foreground">Add a testimonial</h2>
+        <p className="text-xs text-text-muted">Only add feedback a real customer gave you, with their permission.</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <input className={`${inputClass} sm:col-span-2`} placeholder="Customer name (e.g. Sam K.)" value={form.reviewer_name}
             onChange={e => setForm({ ...form, reviewer_name: e.target.value })} required />
           <select className={inputClass} value={form.rating} onChange={e => setForm({ ...form, rating: e.target.value })}>
             {[5, 4, 3, 2, 1].map(n => <option key={n} value={n}>{n} stars</option>)}
@@ -93,45 +94,49 @@ export default function OwnerReviewsPage() {
           onChange={e => setForm({ ...form, title: e.target.value })} />
         <textarea className={inputClass} rows={3} placeholder="What the customer said (10-1000 characters)" value={form.comment}
           maxLength={1000} onChange={e => setForm({ ...form, comment: e.target.value })} required />
-        <button disabled={saving} className="rounded bg-black px-4 py-2 text-white disabled:opacity-40">
+        <button disabled={saving} className="ui-button ui-button--primary" aria-busy={saving}>
           {saving ? 'Adding...' : 'Add testimonial'}
         </button>
       </form>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="dashboard-table min-w-[760px] text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-300">
-              <th className="p-2">Customer</th>
-              <th className="p-2">Rating</th>
-              <th className="p-2">Review</th>
-              <th className="p-2">Date</th>
-              <th className="p-2">Status</th>
-              <th className="p-2" />
+            <tr>
+              <th className="p-3">Customer</th>
+              <th className="p-3">Rating</th>
+              <th className="p-3">Review</th>
+              <th className="p-3">Date</th>
+              <th className="p-3">Status</th>
+              <th className="p-3" />
             </tr>
           </thead>
           <tbody>
             {reviews.map(r => (
-              <tr key={r.id} className={`border-b border-gray-200 align-top ${r.is_visible ? '' : 'bg-gray-50 text-gray-500'}`}>
-                <td className="p-2 whitespace-nowrap">
+              <tr key={r.id} className={`align-top ${r.is_visible ? '' : 'text-text-muted'}`}>
+                <td className="p-3 whitespace-nowrap font-semibold text-foreground">
                   {r.reviewer_name}
-                  {!r.booking_id && <span className="block text-xs text-gray-500">added by owner</span>}
+                  {!r.booking_id && <span className="mt-1 block text-xs font-normal text-text-muted">added by owner</span>}
                 </td>
-                <td className="p-2"><Stars rating={r.rating} /></td>
-                <td className="p-2 max-w-md">
+                <td className="p-3"><Stars rating={r.rating} /></td>
+                <td className="max-w-md p-3">
                   {r.title && <span className="block font-medium">{r.title}</span>}
                   {r.comment}
                 </td>
-                <td className="p-2 whitespace-nowrap">{new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                <td className="p-2">{r.is_visible ? 'Visible' : 'Hidden'}</td>
-                <td className="p-2 whitespace-nowrap space-x-3">
-                  <button onClick={() => toggle(r)} className="underline">{r.is_visible ? 'Hide' : 'Show'}</button>
-                  <button onClick={() => remove(r)} className="underline text-red-600">Delete</button>
+                <td className="whitespace-nowrap p-3 text-text-muted">{new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                <td className="p-3">
+                  <span className={`ui-badge ${r.is_visible ? 'ui-badge--success' : 'ui-badge--neutral'}`}>
+                    {r.is_visible ? 'Visible' : 'Hidden'}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap p-3">
+                  <button onClick={() => toggle(r)} className="font-semibold text-primary underline underline-offset-2">{r.is_visible ? 'Hide' : 'Show'}</button>
+                  <button onClick={() => remove(r)} className="ml-3 font-semibold text-danger underline underline-offset-2">Delete</button>
                 </td>
               </tr>
             ))}
             {reviews.length === 0 && (
-              <tr><td colSpan={6} className="p-4 text-center text-gray-700">No reviews yet.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-text-muted">No reviews yet.</td></tr>
             )}
           </tbody>
         </table>

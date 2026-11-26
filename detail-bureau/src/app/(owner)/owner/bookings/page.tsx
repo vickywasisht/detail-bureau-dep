@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
-import { PAYMENT_LABELS, type PaymentStatus } from '@/lib/payments'
+import { type PaymentStatus } from '@/lib/payments'
+import { PaymentStatusBadge } from '@/components/StatusBadge'
 
 interface Booking {
   id: string
@@ -41,7 +42,7 @@ const STATUSES = [
   ['cancelled', 'Cancelled'],
 ]
 
-const selectClass = 'border border-gray-300 p-1 rounded'
+const selectClass = 'ui-input ui-input--compact'
 
 const formatDate = (d: string) =>
   new Date(d.length === 10 ? `${d}T00:00:00` : d).toLocaleDateString('en-US', {
@@ -126,10 +127,12 @@ export default function OwnerBookingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/owner/dashboard" className="text-sm text-gray-700 underline">
+        <Link href="/owner/dashboard" className="text-sm text-text-muted underline">
           ← Back to dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">Bookings</h1>
+        <p className="mb-1 mt-3 text-sm font-semibold uppercase tracking-wider text-sky-700">Service overview</p>
+        <h1 className="text-3xl font-bold text-foreground">Bookings</h1>
+        <p className="mt-1 text-sm text-text-muted">Keep appointments moving and make sure each one has a teammate.</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -138,51 +141,52 @@ export default function OwnerBookingsPage() {
           placeholder="Search by customer, vehicle or package"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="border border-gray-300 p-2 rounded w-full max-w-sm placeholder-gray-500"
+          className="ui-input max-w-sm"
         />
-        <select value={filter} onChange={e => setFilter(e.target.value)} className="border border-gray-300 p-2 rounded">
+        <select value={filter} onChange={e => setFilter(e.target.value)} className="ui-input sm:w-auto">
           <option value="all">All statuses</option>
           {STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </select>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={saveChanges}
           disabled={pendingCount === 0 || saving}
-          className="rounded bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40"
+          className="ui-button ui-button--primary"
+          aria-busy={saving}
         >
           {saving ? 'Saving...' : 'Save changes'}
         </button>
         <button
           onClick={() => setPending({})}
           disabled={pendingCount === 0 || saving}
-          className="rounded border border-gray-300 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="ui-button ui-button--secondary"
         >
           Undo all changes
         </button>
         {pendingCount > 0 && (
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-text-muted">
             {pendingCount} unsaved {pendingCount === 1 ? 'change' : 'changes'}
           </span>
         )}
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="dashboard-table min-w-[1150px] text-left text-sm">
           <thead>
-            <tr className="border-b border-gray-300">
-              <th className="p-2">Customer</th>
-              <th className="p-2">Vehicle</th>
-              <th className="p-2">Package</th>
-              <th className="p-2">Date</th>
-              <th className="p-2">Time</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Payment</th>
-              <th className="p-2">Assigned to</th>
-              <th className="p-2" />
+            <tr>
+              <th className="p-3">Customer</th>
+              <th className="p-3">Vehicle</th>
+              <th className="p-3">Package</th>
+              <th className="p-3">Date</th>
+              <th className="p-3">Time</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Payment</th>
+              <th className="p-3">Assigned to</th>
+              <th className="p-3" />
             </tr>
           </thead>
           <tbody>
@@ -193,41 +197,43 @@ export default function OwnerBookingsPage() {
                 : b.employee_id
               const assignedEmp = employees.find(emp => emp.id === assigned)
               return (
-                <tr key={b.id} className={`border-b border-gray-200 ${pending[b.id] ? 'bg-yellow-50' : ''}`}>
-                  <td className="p-2">{b.customers?.first_name} {b.customers?.last_name}</td>
-                  <td className="p-2">{b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model}</td>
-                  <td className="p-2">
+                <tr key={b.id} className={pending[b.id] ? 'table-row-pending' : ''}>
+                  <td className="p-3 font-semibold text-foreground">{b.customers?.first_name} {b.customers?.last_name}</td>
+                  <td className="p-3">{b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model}</td>
+                  <td className="p-3">
                     {b.package_label}
                     {b.addons && b.addons.length > 0 && (
-                      <span className="block text-xs text-gray-600">
+                      <span className="mt-1 block text-xs text-text-muted">
                         +{b.addons.length} add-on{b.addons.length === 1 ? '' : 's'}
                       </span>
                     )}
                   </td>
-                  <td className="p-2">{formatDate(b.service_date)}</td>
-                  <td className="p-2">{b.dropoff_time}</td>
-                  <td className="p-2">
+                  <td className="p-3 whitespace-nowrap">{formatDate(b.service_date)}</td>
+                  <td className="p-3 whitespace-nowrap">{b.dropoff_time}</td>
+                  <td className="p-3">
                     <select
                       value={status}
                       onChange={e => stage(b, { booking_status: e.target.value })}
-                      className={selectClass}
+                      className={`${selectClass} ui-status-select--${status}`}
+                      aria-label={`Booking status for ${b.customers?.first_name} ${b.customers?.last_name}`}
                     >
                       {STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                     </select>
                   </td>
-                  <td className="p-2 text-sm">
-                    {PAYMENT_LABELS[b.payment_status ?? 'unpaid']}
+                  <td className="p-3 text-sm">
+                    <PaymentStatusBadge status={b.payment_status ?? 'unpaid'} />
                     {Number(b.amount_paid) > 0 && (
-                      <span className="block text-xs text-gray-600">
+                      <span className="mt-1 block text-xs text-text-muted">
                         ${Number(b.amount_paid).toFixed(2)} of ${Number(b.quoted_price ?? 0).toFixed(2)}
                       </span>
                     )}
                   </td>
-                  <td className="p-2">
+                  <td className="p-3">
                     <select
                       value={assigned ?? ''}
                       onChange={e => stage(b, { employee_id: e.target.value || null })}
                       className={selectClass}
+                      aria-label={`Assigned employee for ${b.customers?.first_name} ${b.customers?.last_name}`}
                     >
                       <option value="">Unassigned</option>
                       {employees
@@ -237,7 +243,7 @@ export default function OwnerBookingsPage() {
                         ))}
                     </select>
                   </td>
-                  <td className="p-2">
+                  <td className="p-3">
                     <ServiceDetailsButton
                       service={{
                         ...b,
@@ -255,7 +261,7 @@ export default function OwnerBookingsPage() {
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={9} className="p-4 text-center text-gray-700">
+                <td colSpan={9} className="p-8 text-center text-text-muted">
                   {bookings.length === 0 ? 'No bookings yet.' : 'No bookings match your filters.'}
                 </td>
               </tr>

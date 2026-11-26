@@ -3,6 +3,7 @@ import { getEmployeeFromToken } from '@/lib/employee-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import CustomerSearch from '@/components/CustomerSearch'
+import { BookingStatusBadge } from '@/components/StatusBadge'
 
 interface BookingListItem {
   id: string
@@ -16,22 +17,6 @@ interface BookingListItem {
 
 interface BookingStatusRow {
   booking_status: string
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  pending:     'bg-yellow-50 text-yellow-700 border border-yellow-200',
-  confirmed:   'bg-green-50 text-green-700 border border-green-200',
-  in_progress: 'bg-blue-50 text-blue-700 border border-blue-200',
-  completed:   'bg-gray-100 text-gray-600 border border-gray-200',
-  cancelled:   'bg-red-50 text-red-700 border border-red-200',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
 }
 
 export default async function EmployeeDashboardPage() {
@@ -59,7 +44,11 @@ export default async function EmployeeDashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-black mb-8">Dashboard</h1>
+      <div className="mb-8">
+        <p className="mb-1 text-sm font-semibold uppercase tracking-wider text-sky-700">Technician workspace</p>
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <p className="mt-1 text-text-muted">Your schedule at a glance. Let&apos;s make every finish shine.</p>
+      </div>
 
       <div className="mb-10">
         <CustomerSearch />
@@ -68,52 +57,60 @@ export default async function EmployeeDashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
-          { label: 'Pending',     count: counts.pending,     color: 'text-yellow-600' },
-          { label: 'Confirmed',   count: counts.confirmed,   color: 'text-green-600' },
-          { label: 'In Progress', count: counts.in_progress, color: 'text-blue-600' },
-          { label: 'Completed',   count: counts.completed,   color: 'text-gray-500' },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p className="text-gray-500 text-sm">{s.label}</p>
-            <p className={`text-3xl font-bold mt-1 ${s.color}`}>{s.count}</p>
+          { label: 'Pending', count: counts.pending, accent: 'amber', icon: '⏳' },
+          { label: 'Confirmed', count: counts.confirmed, accent: 'green', icon: '✅' },
+          { label: 'In Progress', count: counts.in_progress, accent: 'blue', icon: '✨' },
+          { label: 'Completed', count: counts.completed, accent: 'violet', icon: '🏁' },
+        ].map((s, index) => (
+          <div
+            key={s.label}
+            className={`dashboard-stat dashboard-stat--${s.accent} dashboard-enter`}
+            style={{ animationDelay: `${index * 60}ms` }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="dashboard-stat__label">{s.label}</p>
+              <span aria-hidden="true" className="text-xl">{s.icon}</span>
+            </div>
+            <p className="dashboard-stat__value">{s.count}</p>
           </div>
         ))}
       </div>
 
       {/* Active bookings */}
-      <h2 className="text-lg font-semibold text-black mb-4">Active Bookings</h2>
+      <h2 className="mb-4 text-xl font-bold text-foreground">Active Bookings</h2>
       {bookings && bookings.length > 0 ? (
         <div className="space-y-3">
-          {bookings.map((b: BookingListItem) => (
+          {bookings.map((b: BookingListItem, index) => (
             <Link
               key={b.id}
               href={`/employee/bookings/${b.id}`}
-              className="block bg-white border border-gray-200 hover:border-gray-400 rounded-xl p-5 shadow-sm transition-colors"
+              className={`dashboard-card dashboard-card--${index % 2 ? 'teal' : 'sky'} dashboard-enter block p-5`}
+              style={{ animationDelay: `${index * 55}ms` }}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-black font-medium">
+                  <p className="font-semibold text-foreground">
                     {b.customers?.first_name} {b.customers?.last_name}
                   </p>
-                  <p className="text-gray-600 text-sm mt-0.5">
+                  <p className="mt-1 text-sm text-text-muted">
                     {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.package_label}
                   </p>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="mt-1 text-sm text-text-muted">
                     {new Date(`${b.service_date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', {
                       weekday: 'short', month: 'short', day: 'numeric'
                     })} at {b.dropoff_time}
                   </p>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[b.booking_status]}`}>
-                  {STATUS_LABELS[b.booking_status]}
-                </span>
+                <BookingStatusBadge status={b.booking_status} />
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl p-10 text-center shadow-sm">
-          <p className="text-gray-500">No active bookings right now.</p>
+        <div className="dashboard-empty">
+          <div className="mb-3 text-4xl" aria-hidden="true">🧽</div>
+          <p className="font-semibold text-foreground">All caught up!</p>
+          <p className="mt-1 text-sm text-text-muted">No active bookings right now.</p>
         </div>
       )}
     </div>

@@ -16,48 +16,56 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-black">My Vehicles</h1>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-1 text-sm font-semibold uppercase tracking-wider text-violet-700">Your garage</p>
+          <h1 className="text-3xl font-bold text-foreground">My Vehicles</h1>
+          <p className="mt-1 text-text-muted">Keep your vehicles and detailing history together.</p>
+        </div>
         <Link
           href="/vehicles/add"
-          className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="dashboard-action"
         >
-          + Add Vehicle
+          <span aria-hidden="true">＋</span> Add Vehicle
         </Link>
       </div>
 
       {vehicles && vehicles.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
-          {vehicles.map(vehicle => (
+          {vehicles.map((vehicle, index) => (
             <Link
               key={vehicle.id}
               href={`/vehicles/${vehicle.id}`}
-              className="bg-white border border-gray-200 hover:border-gray-400 rounded-xl p-5 transition-colors group"
+              className={`dashboard-card dashboard-card--${['sky', 'violet', 'rose', 'amber', 'teal'][index % 5]} dashboard-enter group block p-5`}
+              style={{ animationDelay: `${index * 60}ms` }}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-black font-semibold text-lg group-hover:text-gray-700 transition-colors">
+                  <h2 className="text-lg font-semibold text-foreground transition-colors group-hover:text-violet-700">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>
-                  <p className="text-gray-600 text-sm mt-1">{vehicle.vehicle_type}</p>
+                  <p className="mt-2 inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                    {vehicle.vehicle_type}
+                  </p>
                   {vehicle.color && (
-                    <p className="text-gray-500 text-sm">{vehicle.color}</p>
+                    <p className="mt-2 text-sm text-text-muted">{vehicle.color}</p>
                   )}
                 </div>
-                <span className="text-gray-400 group-hover:text-gray-600 text-lg transition-colors">→</span>
+                <span className="dashboard-card__icon shrink-0" aria-hidden="true">🚘</span>
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-gray-50 border border-gray-200 rounded-xl">
-          <p className="text-gray-700 text-lg mb-2">No vehicles yet</p>
-          <p className="text-gray-600 text-sm mb-6">Add your first vehicle to get started</p>
+        <div className="dashboard-empty">
+          <div className="mb-4 text-4xl" aria-hidden="true">🚗</div>
+          <p className="mb-2 text-lg font-semibold text-foreground">Your garage is ready for its first ride</p>
+          <p className="mb-6 text-sm text-text-muted">Add a vehicle to start booking and tracking its care.</p>
           <Link
             href="/vehicles/add"
-            className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            className="dashboard-action"
           >
-            Add a vehicle
+            <span aria-hidden="true">＋</span> Add a vehicle
           </Link>
         </div>
       )}
