@@ -2,13 +2,15 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
+import BookingPayment from '@/components/BookingPayment'
+import type { PaymentStatus } from '@/lib/payments'
 
 const STATUS_STYLES: Record<string, string> = {
-  pending:     'bg-yellow-50 text-yellow-700 border border-yellow-200',
-  confirmed:   'bg-green-50 text-green-700 border border-green-200',
+  pending: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+  confirmed: 'bg-green-50 text-green-700 border border-green-200',
   in_progress: 'bg-blue-50 text-blue-700 border border-blue-200',
-  completed:   'bg-gray-100 text-gray-600 border border-gray-200',
-  cancelled:   'bg-red-50 text-red-700 border border-red-200',
+  completed: 'bg-gray-100 text-gray-600 border border-gray-200',
+  cancelled: 'bg-red-50 text-red-700 border border-red-200',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -38,14 +40,19 @@ interface Booking {
   addons?: { id: string; name: string; description?: string | null; price: number }[]
   booking_status: string
   employee_id?: string
+  payment_status?: PaymentStatus
+  amount_paid?: number
 }
 
 export default async function VehicleDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ payment?: string }>
 }) {
   const { id } = await params
+  const { payment } = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -73,10 +80,32 @@ export default async function VehicleDetailPage({
     b.booking_status === 'completed'
   )
 
+  // which completed bookings already have a review?
+  const historyIds = history.map((b: Booking) => b.id)
+  const { data: reviewed } = historyIds.length
+    ? await supabase.from('reviews').select('booking_id').in('booking_id', historyIds)
+    : { data: [] as { booking_id: string }[] }
+  const reviewedIds = new Set((reviewed ?? []).map(r => r.booking_id))
+
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
 
   return (
     <div>
+      {payment === 'success' && (
+        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          Payment received, thank you! It can take a few seconds to show up below.
+        </div>
+      )}
+      {payment === 'cancelled' && (
+        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+          Payment was cancelled. Your booking is saved and you can pay any time below.
+        </div>
+      )}
+      {payment === 'error' && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Your booking is saved, but we couldn&apos;t start the payment. Please try again below.
+        </div>
+      )}
       <div className="mb-6">
         <Link href="/dashboard" className="text-gray-500 hover:text-black text-sm transition-colors">
           ← Back to My Vehicles
@@ -136,6 +165,12 @@ export default async function VehicleDetailPage({
                     </span>
                   )}
                 </div>
+                <BookingPayment
+                  bookingId={booking.id}
+                  total={Number(booking.quoted_price ?? 0)}
+                  amountPaid={Number(booking.amount_paid ?? 0)}
+                  status={booking.payment_status ?? 'unpaid'}
+                />
                 {booking.special_notes && (
                   <p className="text-gray-500 text-sm mt-3 border-t border-gray-200 pt-3">
                     {booking.special_notes}
@@ -199,10 +234,17 @@ export default async function VehicleDetailPage({
                       {booking.final_price
                         ? `$${Number(booking.final_price).toFixed(2)}`
                         : booking.quoted_price
-                        ? `$${Number(booking.quoted_price).toFixed(2)}`
-                        : '—'}
+                          ? `$${Number(booking.quoted_price).toFixed(2)}`
+                          : '—'}
                     </td>
-                    <td className="py-3 text-right">
+                    <td className="py-3 text-right space-x-3">
+                      {reviewedIds.has(booking.id) ? (
+                        <span className="text-gray-500 text-sm">Reviewed ✓</span>
+                      ) : (
+                        <Link href={`/write-review?booking_id=${booking.id}`} className="text-blue-600 hover:text-blue-700 text-sm">
+                          Leave a review
+                        </Link>
+                      )}
                       <ServiceDetailsButton
                         service={{ ...booking, vehicle: vehicleName }}
                         className="text-blue-600 hover:text-blue-700 text-sm"

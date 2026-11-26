@@ -2,6 +2,10 @@ import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase/admin'
+import { getReviewSummary, getReviews } from '@/lib/reviews'
+import ReviewsSection from '@/components/ReviewsSection'
+import Stars from '@/components/Stars'
+
 import { buildLocalBusinessJsonLd } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -12,9 +16,11 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const [{ data: info }, { data: rows }] = await Promise.all([
+  const [{ data: info }, { data: rows }, reviewSummary, topReviews] = await Promise.all([
     adminClient.from('service_packages').select('slug, description'),
     adminClient.from('service_pricing').select('package_slug, price'),
+    getReviewSummary(),
+    getReviews({ minRating: 5, limit: 3 }), // recent five-star reviews
   ])
   const fromPrice = (slug: string, fallback: number) => {
     const prices = rows?.filter(r => r.package_slug === slug).map(r => Number(r.price)) ?? []
@@ -41,6 +47,12 @@ export default async function HomePage() {
         <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">
           From express shine to full ceramic coating — we restore and protect your vehicle to factory-fresh condition.
         </p>
+        {reviewSummary.count > 0 && (
+          <Link href="/reviews" className="inline-flex items-center gap-2 -mt-6 mb-8 text-sm text-gray-300 hover:text-white">
+            <Stars rating={reviewSummary.average} />
+            <span>{reviewSummary.average.toFixed(1)} · {reviewSummary.count} review{reviewSummary.count === 1 ? '' : 's'}</span>
+          </Link>
+        )}
         <div className="flex gap-4 justify-center flex-wrap">
           <Link
             href="/packages"
@@ -110,6 +122,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <ReviewsSection summary={reviewSummary} reviews={topReviews} />
 
       {/* CTA */}
       <section className="bg-black text-white py-20 px-6 text-center">
@@ -131,6 +144,7 @@ export default async function HomePage() {
           <Link href="/about" className="hover:text-black transition-colors">About</Link>
           <Link href="/packages" className="hover:text-black transition-colors">Packages</Link>
           <Link href="/gallery" className="hover:text-black transition-colors">Gallery</Link>
+          <Link href="/reviews" className="hover:text-black transition-colors">Reviews</Link>
           <Link href="/faqs" className="hover:text-black transition-colors">FAQs</Link>
         </div>
       </footer>
