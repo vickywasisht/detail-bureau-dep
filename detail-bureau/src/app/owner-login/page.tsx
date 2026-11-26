@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function OwnerLoginPage() {
   const router = useRouter()
@@ -36,9 +37,9 @@ export default function OwnerLoginPage() {
     <main id="main-content" tabIndex={-1} className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <p className="text-xl font-semibold text-foreground tracking-widest uppercase">
+          <Link href="/" className="inline-block text-xl font-semibold text-foreground tracking-widest uppercase transition-colors hover:text-violet-700">
             The Detail Bureau
-          </p>
+          </Link>
           <p className="text-text-muted text-sm mt-1">Owner Portal</p>
         </div>
         <div className="ui-card p-6 sm:p-8">

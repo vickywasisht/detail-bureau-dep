@@ -87,16 +87,16 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="text-center text-gray-600 text-sm mt-6">
+      <p className="text-center text-text-muted text-sm mt-6">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="text-primary underline hover:opacity-75">
           Create one
         </Link>
       </p>
 
-      <p className="text-center text-gray-600 text-xs mt-3">
+      <p className="text-center text-text-muted text-xs mt-3">
         Are you an employee?{' '}
-        <Link href="/employee-login" className="text-gray-700 underline hover:text-black">
+        <Link href="/employee-login" className="text-primary underline hover:opacity-75">
           Employee login →
         </Link>
       </p>
