@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
 import { getEmployeeFromToken } from '@/lib/employee-auth'
+import { employeeBookingUpdateSchema, parseBody } from '@/lib/validation'
 
 export async function GET(
   _: NextRequest,
@@ -29,10 +30,11 @@ export async function PATCH(
   const employee = await getEmployeeFromToken()
   if (!employee) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const allowed = ['booking_status', 'final_price']//no longer allowed to change emp id(aka assignment)
+  const body = await parseBody(req, employeeBookingUpdateSchema)
+  if (body.error) return body.error
   const updates: Record<string, unknown> = {}
-  allowed.forEach(key => { if (body[key] !== undefined) updates[key] = body[key] })
+  if (body.data.booking_status !== undefined) updates.booking_status = body.data.booking_status
+  if (body.data.final_price !== undefined) updates.final_price = body.data.final_price
 
   const { data, error } = await adminClient
     .from('bookings')

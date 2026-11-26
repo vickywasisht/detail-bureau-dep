@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
 import { requireOwner } from '@/lib/employee-auth'
+import { employeeUpdateSchema, parseBody } from '@/lib/validation'
 
 export async function PATCH(
   req: NextRequest,
@@ -10,7 +11,9 @@ export async function PATCH(
   if (!owner) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const { is_active, role } = await req.json()
+  const { data: body, error: validationError } = await parseBody(req, employeeUpdateSchema)
+  if (validationError) return validationError
+  const { is_active, role } = body
 
   // stops the owner from locking themselves out
   if (id === owner.id && (is_active === false || (role && role !== 'owner'))) {
@@ -18,13 +21,8 @@ export async function PATCH(
   }
 
   const updates: Record<string, unknown> = {}
-  if (typeof is_active === 'boolean') updates.is_active = is_active
-  if (role !== undefined) {
-    if (!['owner', 'employee'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role.' }, { status: 400 })
-    }
-    updates.role = role
-  }
+  if (is_active !== undefined) updates.is_active = is_active
+  if (role !== undefined) updates.role = role
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No changes provided.' }, { status: 400 })
   }

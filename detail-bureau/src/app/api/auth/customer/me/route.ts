@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { adminClient } from '@/lib/supabase/admin'
+import { customerUpdateSchema, parseBody } from '@/lib/validation'
 
 export async function GET() {
   const supabase = await createClient()
@@ -21,7 +22,8 @@ export async function PATCH(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const { data: body, error: validationError } = await parseBody(req, customerUpdateSchema)
+  if (validationError) return validationError
   const { first_name, last_name, phone, current_password, new_password } = body
 
   const updates: Record<string, unknown> = {}
@@ -39,19 +41,14 @@ export async function PATCH(req: NextRequest) {
   }
 
   if (new_password) {
-    if (!current_password) {
-      return NextResponse.json({ error: 'Current password is required to set a new password.' }, { status: 400 })
-    }
-    if (new_password.length < 8) {
-      return NextResponse.json({ error: 'New password must be at least 8 characters.' }, { status: 400 })
-    }
     if (!user.email) {
       return NextResponse.json({ error: 'No email on file for this account.' }, { status: 400 })
     }
 
     const { error: verifyError } = await supabase.auth.signInWithPassword({
       email: user.email,
-      password: current_password,
+      // guaranteed present by customerUpdateSchema's refine() whenever new_password is set
+      password: current_password!,
     })
     if (verifyError) {
       return NextResponse.json({ error: 'Current password is incorrect.' }, { status: 401 })

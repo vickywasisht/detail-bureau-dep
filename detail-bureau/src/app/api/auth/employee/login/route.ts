@@ -2,12 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { employeeLoginSchema, parseBody } from '@/lib/validation'
+import { checkLoginLock, getClientIp, recordLoginFailure, recordLoginSuccess } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
-  const { username, password, portal } = await req.json()
+  const { data, error: validationError } = await parseBody(req, employeeLoginSchema)
+  if (validationError) return validationError
+  const { username, password, portal } = data
 
-  if (!username || !password) {
-    return NextResponse.json({ error: 'Username and password required.' }, { status: 400 })
+  const throttleKey = `${getClientIp(req)}:${username.toLowerCase()}`
+  const lock = checkLoginLock(throttleKey)
+  if (lock.locked) {
+    return NextResponse.json(
+      { error: `Too many failed attempts. Try again in ${lock.retryAfterSeconds} seconds.` },
+      { status: 429 }
+    )
   }
 
   const { data: employee, error } = await adminClient
@@ -18,13 +27,17 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error || !employee) {
+    recordLoginFailure(throttleKey)
     return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
   }
 
   const valid = await bcrypt.compare(password, employee.password_hash)
   if (!valid || (portal === 'owner' && employee.role !== 'owner')) {
+    recordLoginFailure(throttleKey)
     return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
   }
+
+  recordLoginSuccess(throttleKey)
 
   const token = jwt.sign(
     { id: employee.id, username: employee.username, role: employee.role },

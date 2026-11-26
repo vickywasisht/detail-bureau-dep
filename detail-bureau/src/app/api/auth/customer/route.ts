@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
+import { customerCreateSchema, parseBody } from '@/lib/validation'
 
 export async function POST(req: NextRequest) {
   try {
-    const { id, first_name, last_name, email, phone } = await req.json()
-
-    if (!id || !first_name || !last_name || !email) {
-      return NextResponse.json(
-        { error: 'Missing required fields.' },
-        { status: 400 }
-      )
-    }
+    const { data, error: validationError } = await parseBody(req, customerCreateSchema)
+    if (validationError) return validationError
+    const { id, first_name, last_name, email, phone } = data
 
     const { error } = await adminClient
       .from('customers')

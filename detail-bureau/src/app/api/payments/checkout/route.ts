@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { adminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe'
-import { CURRENCY, PAYMENT_TYPES, getChargeCents, type PaymentType } from '@/lib/payments'
+import { CURRENCY, getChargeCents, type PaymentType } from '@/lib/payments'
+import { checkoutSchema, parseBody } from '@/lib/validation'
 
 const TYPE_LABEL: Record<PaymentType, string> = {
   deposit: 'Deposit',
@@ -16,10 +17,9 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { booking_id, type } = await req.json().catch(() => ({}))
-  if (!booking_id || !PAYMENT_TYPES.includes(type)) {
-    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
-  }
+  const { data: body, error: validationError } = await parseBody(req, checkoutSchema)
+  if (validationError) return validationError
+  const { booking_id, type } = body
 
   // The booking must belong to the logged-in customer
   const { data: booking } = await adminClient

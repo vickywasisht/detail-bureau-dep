@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
 import { requireOwner } from '@/lib/employee-auth'
+import { addonSchema, parseBody } from '@/lib/validation'
 
 export async function GET() {
   const owner = await requireOwner()
@@ -15,16 +16,13 @@ export async function POST(req: NextRequest) {
   const owner = await requireOwner()
   if (!owner) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, description, price } = await req.json()
-  const p = Number(price)
-  if (!name?.trim()) return NextResponse.json({ error: 'Name is required.' }, { status: 400 })
-  if (price === '' || price == null || !Number.isFinite(p) || p < 0) {
-    return NextResponse.json({ error: 'Enter a valid price.' }, { status: 400 })
-  }
+  const { data: body, error: validationError } = await parseBody(req, addonSchema)
+  if (validationError) return validationError
+  const { name, description, price } = body
 
   const { data, error } = await adminClient
     .from('addons')
-    .insert({ name: name.trim(), description: description?.trim() || null, price: p })
+    .insert({ name, description: description || null, price })
     .select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
