@@ -92,7 +92,7 @@ function BookingConfirmForm() {
       router.push(`/vehicles/${vehicleId}?booked=true&payment=error`)
       return
     }
-    window.location.href = payData.url
+    window.location.assign(payData.url)
   }
 
   const payNowAmount = payOption === 'deposit' ? depositAmount(total) : payOption === 'full' ? total : 0

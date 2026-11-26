@@ -62,7 +62,22 @@ export default function OwnerBookingsPage() {
     if (b.ok) setBookings(await b.json())
     if (e.ok) setEmployees(await e.json())
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    let stale = false
+    Promise.all([fetch('/api/owner/bookings'), fetch('/api/owner/employees')])
+      .then(async ([bookingResponse, employeeResponse]) => {
+        const bookingData = bookingResponse.ok ? await bookingResponse.json() : null
+        const employeeData = employeeResponse.ok ? await employeeResponse.json() : null
+        if (stale) return
+        if (bookingData) setBookings(bookingData)
+        if (employeeData) setEmployees(employeeData)
+      })
+      .catch(error => {
+        if (!stale) setError(error instanceof Error ? error.message : 'Could not load bookings.')
+      })
+
+    return () => { stale = true }
+  }, [])
 
   // Stage a change locally; nothing is sent until the owner clicks Save changes
   const stage = (b: Booking, changes: Changes) => {

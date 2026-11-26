@@ -30,7 +30,19 @@ export default function OwnerEmployeesPage() {
     const res = await fetch('/api/owner/employees')
     if (res.ok) setEmployees(await res.json())
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    let stale = false
+    fetch('/api/owner/employees')
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!stale && data) setEmployees(data)
+      })
+      .catch(error => {
+        if (!stale) setError(error instanceof Error ? error.message : 'Could not load employees.')
+      })
+
+    return () => { stale = true }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()

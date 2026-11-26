@@ -40,7 +40,26 @@ export default function OwnerPricingPage() {
     const res = await fetch('/api/owner/addons')
     if (res.ok) setAddons(await res.json())
   }
-  useEffect(() => { loadTiers(); loadAddons() }, [])
+  useEffect(() => {
+    let stale = false
+    const tiersRequest = fetch('/api/owner/pricing')
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => {
+        if (stale || !data) return
+        setOrig(data)
+        setDraft(data)
+      })
+    const addonsRequest = fetch('/api/owner/addons')
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!stale && data) setAddons(data)
+      })
+    Promise.all([tiersRequest, addonsRequest]).catch(error => {
+      if (!stale) setError(error instanceof Error ? error.message : 'Could not load pricing.')
+    })
+
+    return () => { stale = true }
+  }, [])
 
   const changedPackages = draft.packages.filter(
     p => p.description !== orig.packages.find(o => o.slug === p.slug)?.description

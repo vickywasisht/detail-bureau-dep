@@ -29,7 +29,19 @@ export default function OwnerReviewsPage() {
     const res = await fetch('/api/owner/reviews')
     if (res.ok) setReviews(await res.json())
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    let stale = false
+    fetch('/api/owner/reviews')
+      .then(async response => response.ok ? response.json() : null)
+      .then(data => {
+        if (!stale && data) setReviews(data)
+      })
+      .catch(error => {
+        if (!stale) setError(error instanceof Error ? error.message : 'Could not load reviews.')
+      })
+
+    return () => { stale = true }
+  }, [])
 
   const toggle = async (r: Review) => {
     setError('')
