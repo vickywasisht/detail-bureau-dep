@@ -14,6 +14,7 @@ interface BookingDetail {
   quoted_price?: number
   final_price?: number
   special_notes?: string
+  addons?: { id: string; name: string; price: number }[]
   booking_status: string
   vehicles?: {
     year: string
@@ -47,11 +48,19 @@ export default function EmployeeBookingDetailPage() {
   const [finalPrice, setFinalPrice] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
     fetch(`/api/employee/bookings/${id}`)
-      .then(r => r.json())
-      .then((data: BookingDetail) => {
+      .then(async r => {
+        if (!r.ok) {
+          setNotFound(true)
+          return null
+        }
+        return r.json() as Promise<BookingDetail>
+      })
+      .then(data => {
+        if (!data) return
         setBooking(data)
         setStatus(data.booking_status)
         setFinalPrice(data.final_price ? String(data.final_price) : '')
@@ -75,6 +84,15 @@ export default function EmployeeBookingDetailPage() {
     setSaving(false)
   }
 
+  if (notFound) return (
+    <div className="max-w-2xl mx-auto py-20 text-center">
+      <p className="text-gray-700 mb-4">This booking isn&apos;t assigned to you.</p>
+      <Link href="/employee/bookings" className="text-gray-500 hover:text-black text-sm">
+        ← My Bookings
+      </Link>
+    </div>
+  )
+
   if (!booking) return (
     <div className="flex items-center justify-center py-20">
       <p className="text-gray-500">Loading...</p>
@@ -85,7 +103,7 @@ export default function EmployeeBookingDetailPage() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <Link href="/employee/bookings" className="text-gray-500 hover:text-black text-sm">
-          ← All Bookings
+          ← My Bookings
         </Link>
         <h1 className="text-2xl font-semibold text-black mt-3">Booking Details</h1>
       </div>
@@ -119,7 +137,7 @@ export default function EmployeeBookingDetailPage() {
           <div className="space-y-2 text-sm">
             {[
               ['Package', booking.package_label],
-              ['Date', new Date(booking.service_date).toLocaleDateString('en-US', {
+              ['Date', new Date(`${booking.service_date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', {
                 weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
               })],
               ['Drop-off time', booking.dropoff_time],
@@ -132,6 +150,14 @@ export default function EmployeeBookingDetailPage() {
               </div>
             ))}
           </div>
+          {booking.addons && booking.addons.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Add-ons</p>
+              <ul className="text-gray-700 text-sm">
+                {booking.addons.map(a => <li key={a.id}>{a.name} (+${Number(a.price).toFixed(2)})</li>)}
+              </ul>
+            </div>
+          )}
           {booking.special_notes && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Customer notes</p>

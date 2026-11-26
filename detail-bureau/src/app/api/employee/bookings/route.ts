@@ -9,6 +9,7 @@ export async function GET() {
   const { data, error } = await adminClient
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email, phone)')
+    .eq('employee_id', employee.id)//added this to show only bookings assigned to this employee, done by owner
     .order('service_date', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

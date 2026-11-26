@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import ServiceDetailsButton from '@/components/ServiceDetails'
 
 const STATUS_STYLES: Record<string, string> = {
   pending:     'bg-yellow-50 text-yellow-700 border border-yellow-200',
@@ -34,6 +35,7 @@ interface Booking {
   quoted_price?: number
   final_price?: number
   special_notes?: string
+  addons?: { id: string; name: string; description?: string | null; price: number }[]
   booking_status: string
   employee_id?: string
 }
@@ -70,6 +72,8 @@ export default async function VehicleDetailPage({
   const history = (bookings ?? []).filter((b: Booking) =>
     b.booking_status === 'completed'
   )
+
+  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
 
   return (
     <div>
@@ -126,12 +130,24 @@ export default async function VehicleDetailPage({
                   {booking.quoted_price && (
                     <span>💰 ${Number(booking.quoted_price).toFixed(2)} quoted</span>
                   )}
+                  {booking.addons && booking.addons.length > 0 && (
+                    <span>
+                      ➕ {booking.addons.length} add-on{booking.addons.length === 1 ? '' : 's'}
+                    </span>
+                  )}
                 </div>
                 {booking.special_notes && (
                   <p className="text-gray-500 text-sm mt-3 border-t border-gray-200 pt-3">
                     {booking.special_notes}
                   </p>
                 )}
+                <div className="mt-3 border-t border-gray-200 pt-3">
+                  <ServiceDetailsButton
+                    service={{ ...booking, vehicle: vehicleName }}
+                    label="View full details"
+                    className="text-blue-600 hover:text-blue-700 text-sm"
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -162,6 +178,7 @@ export default async function VehicleDetailPage({
                   <th className="pb-3 font-medium">Service</th>
                   <th className="pb-3 font-medium">Technician</th>
                   <th className="pb-3 font-medium text-right">Cost</th>
+                  <th className="pb-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -184,6 +201,12 @@ export default async function VehicleDetailPage({
                         : booking.quoted_price
                         ? `$${Number(booking.quoted_price).toFixed(2)}`
                         : '—'}
+                    </td>
+                    <td className="py-3 text-right">
+                      <ServiceDetailsButton
+                        service={{ ...booking, vehicle: vehicleName }}
+                        className="text-blue-600 hover:text-blue-700 text-sm"
+                      />
                     </td>
                   </tr>
                 ))}

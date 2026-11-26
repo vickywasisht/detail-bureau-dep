@@ -40,12 +40,14 @@ export default async function EmployeeDashboardPage() {
   const { data: bookings } = await adminClient
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email)')
+    .eq('employee_id', employee.id)
     .in('booking_status', ['pending', 'confirmed', 'in_progress'])
     .order('service_date', { ascending: true })
 
   const { data: stats } = await adminClient
     .from('bookings')
     .select('booking_status')
+    .eq('employee_id', employee.id)
 
   const counts = { pending: 0, confirmed: 0, in_progress: 0, completed: 0 }
   stats?.forEach((b: BookingStatusRow) => {
@@ -92,7 +94,7 @@ export default async function EmployeeDashboardPage() {
                     {b.vehicles?.year} {b.vehicles?.make} {b.vehicles?.model} · {b.package_label}
                   </p>
                   <p className="text-gray-500 text-sm mt-1">
-                    {new Date(b.service_date).toLocaleDateString('en-US', {
+                    {new Date(`${b.service_date.slice(0, 10)}T00:00:00`).toLocaleDateString('en-US', {
                       weekday: 'short', month: 'short', day: 'numeric'
                     })} at {b.dropoff_time}
                   </p>
