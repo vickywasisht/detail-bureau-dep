@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface BookingDetail {
   id: string
@@ -49,91 +51,114 @@ export default function EmployeeBookingDetailPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
+    let stale = false
     fetch(`/api/employee/bookings/${id}`)
       .then(async r => {
-        if (!r.ok) {
-          setNotFound(true)
+        if (r.status === 404) {
+          if (!stale) setNotFound(true)
           return null
         }
+        if (!r.ok) throw new Error('Could not load booking details.')
         return r.json() as Promise<BookingDetail>
       })
       .then(data => {
-        if (!data) return
+        if (!data || stale) return
         setBooking(data)
         setStatus(data.booking_status)
         setFinalPrice(data.final_price ? String(data.final_price) : '')
       })
+      .catch(error => {
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load booking details.')
+      })
+    return () => { stale = true }
   }, [id])
 
   const handleSave = async () => {
     setSaving(true)
-    const res = await fetch(`/api/employee/bookings/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        booking_status: status,
-        final_price: finalPrice ? Number(finalPrice) : undefined,
-      }),
-    })
-    if (res.ok) {
+    setSaveError('')
+    try {
+      const res = await fetch(`/api/employee/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_status: status,
+          final_price: finalPrice ? Number(finalPrice) : undefined,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error ?? 'Could not save booking changes.')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save booking changes.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   if (notFound) return (
-    <div className="max-w-2xl mx-auto py-20 text-center">
-      <p className="text-gray-700 mb-4">This booking isn&apos;t assigned to you.</p>
-      <Link href="/employee/bookings" className="text-gray-500 hover:text-black text-sm">
-        ← My Bookings
-      </Link>
-    </div>
+    <DataState
+      kind="empty"
+      title="This booking isn’t assigned to you."
+      action={<Link href="/employee/bookings" className="ui-button ui-button--secondary">← My Bookings</Link>}
+      className="mx-auto max-w-2xl"
+    />
+  )
+
+  if (loadError) return (
+    <DataState
+      kind="error"
+      title="We couldn’t load this booking."
+      description={loadError}
+      action={<button onClick={() => window.location.reload()} className="ui-button ui-button--secondary">Try again</button>}
+      className="mx-auto max-w-2xl"
+    />
   )
 
   if (!booking) return (
-    <div className="flex items-center justify-center py-20">
-      <p className="text-gray-500">Loading...</p>
-    </div>
+    <DataState kind="loading" title="Loading your booking..." className="mx-auto max-w-2xl" />
   )
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
-        <Link href="/employee/bookings" className="text-gray-500 hover:text-black text-sm">
+        <Link href="/employee/bookings" className="text-sm text-text-muted hover:text-foreground">
           ← My Bookings
         </Link>
-        <h1 className="text-2xl font-semibold text-black mt-3">Booking Details</h1>
+        <p className="mb-1 mt-3 text-sm font-semibold uppercase tracking-wider text-sky-700">Service appointment</p>
+        <h1 className="text-3xl font-bold text-foreground">Booking Details</h1>
       </div>
 
       <div className="space-y-4">
         {/* Customer */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Customer</h2>
-          <p className="text-black">{booking.customers?.first_name} {booking.customers?.last_name}</p>
-          <p className="text-gray-600 text-sm">{booking.customers?.email}</p>
+        <div className="dashboard-card dashboard-card--sky dashboard-enter p-5">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-sky-800">Customer</h2>
+          <p className="font-semibold text-foreground">{booking.customers?.first_name} {booking.customers?.last_name}</p>
+          <p className="text-sm text-text-muted">{booking.customers?.email}</p>
           {booking.customers?.phone && (
-            <p className="text-gray-600 text-sm">{booking.customers.phone}</p>
+            <p className="text-sm text-text-muted">{booking.customers.phone}</p>
           )}
         </div>
 
         {/* Vehicle */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Vehicle</h2>
-          <p className="text-black">
+        <div className="dashboard-card dashboard-card--teal dashboard-enter p-5" style={{ animationDelay: '55ms' }}>
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-teal-800">Vehicle</h2>
+          <p className="font-semibold text-foreground">
             {booking.vehicles?.year} {booking.vehicles?.make} {booking.vehicles?.model}
           </p>
-          <p className="text-gray-600 text-sm">
+          <p className="text-sm text-text-muted">
             {booking.vehicles?.vehicle_type}
             {booking.vehicles?.color ? ` · ${booking.vehicles.color}` : ''}
           </p>
         </div>
 
         {/* Service */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Service</h2>
+        <div className="dashboard-card dashboard-card--violet dashboard-enter p-5" style={{ animationDelay: '110ms' }}>
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-violet-800">Service</h2>
           <div className="space-y-2 text-sm">
             {[
               ['Package', booking.package_label],
@@ -144,38 +169,41 @@ export default function EmployeeBookingDetailPage() {
               ['Est. duration', booking.duration_hours ? `${booking.duration_hours} hours` : '—'],
               ['Quoted price', `$${Number(booking.quoted_price).toFixed(2)}`],
             ].map(([label, value]) => (
-              <div key={label} className="flex justify-between">
-                <span className="text-gray-500">{label}</span>
-                <span className="text-gray-800">{value}</span>
+              <div key={label} className="flex justify-between gap-4">
+                <span className="text-text-muted">{label}</span>
+                <span className="text-right font-medium text-foreground">{value}</span>
               </div>
             ))}
           </div>
           {booking.addons && booking.addons.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Add-ons</p>
-              <ul className="text-gray-700 text-sm">
+            <div className="mt-3 border-t border-border pt-3">
+              <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Add-ons</p>
+              <ul className="text-sm text-foreground">
                 {booking.addons.map(a => <li key={a.id}>{a.name} (+${Number(a.price).toFixed(2)})</li>)}
               </ul>
             </div>
           )}
           {booking.special_notes && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Customer notes</p>
-              <p className="text-gray-700 text-sm">{booking.special_notes}</p>
+            <div className="mt-3 border-t border-border pt-3">
+              <p className="mb-1 text-xs uppercase tracking-wider text-text-muted">Customer notes</p>
+              <p className="text-sm text-foreground">{booking.special_notes}</p>
             </div>
           )}
         </div>
 
         {/* Update booking */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Update Booking</h2>
+        <div className="dashboard-card dashboard-card--amber dashboard-enter p-5" style={{ animationDelay: '165ms' }}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-amber-800">Update Booking</h2>
+            <BookingStatusBadge status={status} />
+          </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Status</label>
+              <label className="ui-form-label">Status</label>
               <select
                 value={status}
                 onChange={e => setStatus(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+                className={`ui-input ui-status-select ui-status-select--${status}`}
               >
                 {STATUSES.map(s => (
                   <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -183,25 +211,28 @@ export default function EmployeeBookingDetailPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Final Price (optional)</label>
+              <label className="ui-form-label">Final Price (optional)</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">$</span>
                 <input
                   type="number"
                   value={finalPrice}
                   onChange={e => setFinalPrice(e.target.value)}
                   placeholder={String(booking.quoted_price ?? '')}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-7 pr-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+                  className="ui-input pl-7"
                 />
               </div>
             </div>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+              className="dashboard-action w-full"
+              aria-busy={saving}
             >
-              {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save Changes'}
+              {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save changes'}
             </button>
+            {saved && <p role="status" className="ui-alert ui-alert--success">Booking details saved.</p>}
+            {saveError && <p role="alert" className="ui-alert ui-alert--error">{saveError}</p>}
           </div>
         </div>
       </div>

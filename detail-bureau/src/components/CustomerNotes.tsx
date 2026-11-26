@@ -74,7 +74,7 @@ export default function CustomerNotes({
   vehicles: VehicleOption[]
 }) {
   const [data, setData] = useState<Page>({ notes: [], total: 0, page: 1, totalPages: 1 })
-  const [loading, setLoading] = useState(true)
+  const [loadedRequestKey, setLoadedRequestKey] = useState('')
   const [loadError, setLoadError] = useState('')
   const [page, setPage] = useState(1)
   const [reloadKey, setReloadKey] = useState(0)
@@ -98,6 +98,19 @@ export default function CustomerNotes({
   const badRange = !!filterFrom && !!filterTo && filterFrom > filterTo
   const filtersActive = !!filterCategory || !!filterFrom || !!filterTo
 
+  const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) })
+  if (filterCategory) params.set('category', filterCategory)
+  // Send local-day boundaries; "to" is the start of the day after the chosen date.
+  if (filterFrom) params.set('from', new Date(`${filterFrom}T00:00:00`).toISOString())
+  if (filterTo) {
+    const end = new Date(`${filterTo}T00:00:00`)
+    end.setDate(end.getDate() + 1)
+    params.set('to', end.toISOString())
+  }
+  const requestUrl = `/api/employee/customers/${customerId}/notes?${params}`
+  const requestKey = `${requestUrl}|${reloadKey}`
+  const loading = !badRange && loadedRequestKey !== requestKey
+
   useEffect(() => {
     if (!viewing) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setViewing(null) }
@@ -109,18 +122,7 @@ export default function CustomerNotes({
     if (badRange) return
     // a newer request marks this one stale; its response is then ignored
     let stale = false
-    const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) })
-    if (filterCategory) params.set('category', filterCategory)
-    // dates are sent as local-day boundaries; "to" is the start of the day after the chosen date
-    if (filterFrom) params.set('from', new Date(`${filterFrom}T00:00:00`).toISOString())
-    if (filterTo) {
-      const end = new Date(`${filterTo}T00:00:00`)
-      end.setDate(end.getDate() + 1)
-      params.set('to', end.toISOString())
-    }
-
-    setLoading(true)
-    fetch(`/api/employee/customers/${customerId}/notes?${params}`)
+    fetch(requestUrl)
       .then(async r => {
         const body = await r.json().catch(() => null)
         if (!r.ok) throw new Error(body?.error ?? 'Could not load notes.')
@@ -131,10 +133,10 @@ export default function CustomerNotes({
         if (body.page !== page) setPage(body.page)
       })
       .catch(e => { if (!stale) setLoadError(e.message) })
-      .finally(() => { if (!stale) setLoading(false) })
+      .finally(() => { if (!stale) setLoadedRequestKey(requestKey) })
 
     return () => { stale = true }
-  }, [customerId, page, filterCategory, filterFrom, filterTo, reloadKey, badRange])
+  }, [requestUrl, requestKey, page, badRange])
 
   const vehicleLabel = (id: string | null) => vehicles.find(v => v.id === id)?.label
 

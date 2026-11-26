@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import DataState from '@/components/DataState'
 
 interface Pkg { slug: string; name: string; subtitle: string; description: string }
 interface Price {
@@ -15,7 +16,7 @@ interface Addon { id: string; name: string; description: string | null; price: n
 
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'Truck', 'Van', 'Convertible']
 const TIER_ORDER = ['basic', 'value', 'premium']
-const inputClass = 'border border-gray-300 p-2 rounded w-full placeholder-gray-500'
+const inputClass = 'ui-input'
 const emptyAddon = { name: '', description: '', price: '' }
 const json = { 'Content-Type': 'application/json' }
 
@@ -24,23 +25,62 @@ export default function OwnerPricingPage() {
   const [draft, setDraft] = useState(orig)
   const [addons, setAddons] = useState<Addon[]>([])
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [modal, setModal] = useState<{ id: string | null } | null>(null)
   const [addonForm, setAddonForm] = useState(emptyAddon)
   const [modalError, setModalError] = useState('')
 
   const loadTiers = async () => {
-    const res = await fetch('/api/owner/pricing')
-    if (!res.ok) return
-    const data = await res.json()
-    setOrig(data)
-    setDraft(data)
+    try {
+      const res = await fetch('/api/owner/pricing')
+      if (!res.ok) throw new Error('Could not reload service tiers.')
+      const data: { packages: Pkg[]; pricing: Price[] } = await res.json()
+      setOrig(data)
+      setDraft(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not reload service tiers.')
+    }
   }
   const loadAddons = async () => {
-    const res = await fetch('/api/owner/addons')
-    if (res.ok) setAddons(await res.json())
+    try {
+      const res = await fetch('/api/owner/addons')
+      if (!res.ok) throw new Error('Could not reload add-on services.')
+      const data: Addon[] = await res.json()
+      setAddons(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not reload add-on services.')
+    }
   }
-  useEffect(() => { loadTiers(); loadAddons() }, [])
+  useEffect(() => {
+    let stale = false
+    const tiersRequest = fetch('/api/owner/pricing')
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load service tiers.')
+        return response.json()
+      })
+      .then(data => {
+        if (stale) return
+        setOrig(data)
+        setDraft(data)
+      })
+    const addonsRequest = fetch('/api/owner/addons')
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load add-on services.')
+        return response.json()
+      })
+      .then(data => {
+        if (!stale) setAddons(data)
+      })
+    Promise.all([tiersRequest, addonsRequest]).catch(error => {
+      if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load pricing.')
+    }).finally(() => {
+      if (!stale) setLoading(false)
+    })
+
+    return () => { stale = true }
+  }, [])
 
   const changedPackages = draft.packages.filter(
     p => p.description !== orig.packages.find(o => o.slug === p.slug)?.description
@@ -117,45 +157,61 @@ export default function OwnerPricingPage() {
   return (
     <div className="space-y-10">
       <div>
-        <Link href="/owner/dashboard" className="text-sm text-gray-700 underline">
+        <Link href="/owner/dashboard" className="text-sm text-text-muted underline">
           ← Back to dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">Content &amp; Pricing</h1>
+        <p className="mb-1 mt-3 text-sm font-semibold uppercase tracking-wider text-amber-700">Service menu</p>
+        <h1 className="text-3xl font-bold text-foreground">Content &amp; Pricing</h1>
+        <p className="mt-1 text-sm text-text-muted">Keep packages and add-ons clear, current, and ready to book.</p>
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
+      {loading ? (
+        <DataState kind="loading" title="Loading service menu..." />
+      ) : loadError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load the service menu."
+          description={loadError}
+          action={<button onClick={() => window.location.reload()} className="ui-button ui-button--secondary">Try again</button>}
+        />
+      ) : (
+      <>
       {/* Service tiers */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">Service tiers</h2>
-        <div className="flex items-center gap-3">
+        <h2 className="text-xl font-bold text-foreground">Service tiers</h2>
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={saveChanges}
             disabled={pendingCount === 0 || saving}
-            className="rounded bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="ui-button ui-button--primary"
+            aria-busy={saving}
           >
             {saving ? 'Saving...' : 'Save changes'}
           </button>
           <button
             onClick={() => setDraft(orig)}
             disabled={pendingCount === 0 || saving}
-            className="rounded border border-gray-300 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+            className="ui-button ui-button--secondary"
           >
             Undo all changes
           </button>
           {pendingCount > 0 && (
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-text-muted">
               {pendingCount} unsaved {pendingCount === 1 ? 'change' : 'changes'}
             </span>
           )}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        {tiers.length === 0 ? (
+          <DataState kind="empty" title="No service tiers available" description="Service packages will appear here once they are configured." />
+        ) : <div className="grid gap-4 lg:grid-cols-3">
           {tiers.map(p => (
-            <div key={p.slug} className="rounded-lg border border-gray-300 p-5 space-y-4">
+            <div key={p.slug} className={`dashboard-card dashboard-card--${p.slug === 'basic' ? 'sky' : p.slug === 'value' ? 'violet' : 'amber'} space-y-4 p-5`}>
               <div>
-                <h3 className="text-lg font-semibold">{p.name}</h3>
-                <p className="text-sm text-gray-700">{p.subtitle}</p>
+                <h3 className="text-lg font-bold text-foreground">{p.name}</h3>
+                <p className="text-sm text-text-muted">{p.subtitle}</p>
               </div>
 
               <label className="block text-sm font-medium">
@@ -168,84 +224,89 @@ export default function OwnerPricingPage() {
                 />
               </label>
 
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-gray-300">
-                    <th className="py-1">Vehicle</th>
-                    <th className="py-1">Price ($)</th>
-                    <th className="py-1">Hours</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {VEHICLE_TYPES.map(type => {
-                    const r = draft.pricing.find(x => x.package_slug === p.slug && x.vehicle_type === type)
-                    if (!r) return null
-                    return (
-                      <tr key={r.id} className="border-b border-gray-200">
-                        <td className="py-1 pr-2">{type}</td>
-                        <td className="py-1 pr-2">
-                          <input
-                            type="number" min="0" step="0.01"
-                            value={r.price}
-                            onChange={e => setPriceField(r.id, 'price', e.target.value)}
-                            className="border border-gray-300 p-1 rounded w-24"
-                          />
-                        </td>
-                        <td className="py-1">
-                          <input
-                            value={r.duration_hours}
-                            onChange={e => setPriceField(r.id, 'duration_hours', e.target.value)}
-                            className="border border-gray-300 p-1 rounded w-20"
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[300px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-violet-100 text-text-muted">
+                      <th className="py-2">Vehicle</th>
+                      <th className="py-2">Price ($)</th>
+                      <th className="py-2">Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {VEHICLE_TYPES.map(type => {
+                      const r = draft.pricing.find(x => x.package_slug === p.slug && x.vehicle_type === type)
+                      if (!r) return null
+                      return (
+                        <tr key={r.id} className="border-b border-border">
+                          <td className="py-2 pr-2 text-foreground">{type}</td>
+                          <td className="py-2 pr-2">
+                            <input
+                              type="number" min="0" step="0.01"
+                              value={r.price}
+                              onChange={e => setPriceField(r.id, 'price', e.target.value)}
+                              className="ui-input ui-input--compact"
+                              aria-label={`${p.name} price for ${type}`}
+                            />
+                          </td>
+                          <td className="py-2">
+                            <input
+                              value={r.duration_hours}
+                              onChange={e => setPriceField(r.id, 'duration_hours', e.target.value)}
+                              className="ui-input ui-input--compact"
+                              aria-label={`${p.name} duration for ${type}`}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ))}
-        </div>
+        </div>}
       </section>
 
       {/* Add-ons */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Add-on services</h2>
-          <button onClick={() => openAddon()} className="rounded bg-black px-4 py-2 text-white">
-            Add add-on
+          <h2 className="text-xl font-bold text-foreground">Add-on services</h2>
+          <button onClick={() => openAddon()} className="dashboard-action">
+            <span aria-hidden="true">＋</span> Add add-on
           </button>
         </div>
 
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-gray-300">
-              <th className="p-2">Name</th>
-              <th className="p-2">Description</th>
-              <th className="p-2">Price</th>
-              <th className="p-2" />
-            </tr>
-          </thead>
-          <tbody>
+        {addons.length === 0 ? (
+          <DataState kind="empty" title="No add-ons yet" description="Add-on services you create will appear here." />
+        ) : <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="dashboard-table min-w-[640px] text-left text-sm">
+            <thead>
+              <tr>
+                <th className="p-3">Name</th>
+                <th className="p-3">Description</th>
+                <th className="p-3">Price</th>
+                <th className="p-3" />
+              </tr>
+            </thead>
+            <tbody>
             {addons.map(a => (
-              <tr key={a.id} className="border-b border-gray-200">
-                <td className="p-2">{a.name}</td>
-                <td className="p-2">{a.description}</td>
-                <td className="p-2">${Number(a.price).toFixed(2)}</td>
-                <td className="p-2 space-x-4 text-right">
-                  <button onClick={() => openAddon(a)} className="underline">Edit</button>
-                  <button onClick={() => removeAddon(a)} className="underline text-red-600">Remove</button>
+              <tr key={a.id}>
+                <td className="p-3 font-semibold text-foreground">{a.name}</td>
+                <td className="p-3 text-text-muted">{a.description}</td>
+                <td className="p-3 font-semibold text-violet-700">${Number(a.price).toFixed(2)}</td>
+                <td className="space-x-4 p-3 text-right">
+                  <button onClick={() => openAddon(a)} className="font-semibold text-primary underline underline-offset-2">Edit</button>
+                  <button onClick={() => removeAddon(a)} className="font-semibold text-danger underline underline-offset-2">Remove</button>
                 </td>
               </tr>
             ))}
-            {addons.length === 0 && (
-              <tr>
-                <td colSpan={4} className="p-4 text-center text-gray-700">No add-ons yet.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>}
       </section>
+      </>
+      )}
 
       {modal && (
         <div
@@ -256,10 +317,10 @@ export default function OwnerPricingPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="addon-title"
-            className="w-full max-w-md rounded-lg bg-white p-6 text-black shadow-xl"
+            className="ui-card w-full max-w-md bg-surface p-6 text-foreground shadow-xl"
             onClick={e => e.stopPropagation()}
           >
-            <h2 id="addon-title" className="text-xl font-semibold mb-4">
+            <h2 id="addon-title" className="mb-4 text-xl font-bold">
               {modal.id ? 'Edit add-on' : 'Add add-on'}
             </h2>
             <form onSubmit={saveAddon} className="space-y-3">
@@ -270,12 +331,12 @@ export default function OwnerPricingPage() {
               <input required type="number" min="0" step="0.01" placeholder="Price ($)" value={addonForm.price}
                 onChange={e => setAddonForm({ ...addonForm, price: e.target.value })} className={inputClass} />
 
-              {modalError && <p className="text-red-600 text-sm">{modalError}</p>}
+              {modalError && <p role="alert" className="ui-alert ui-alert--error">{modalError}</p>}
 
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setModal(null)}
-                  className="rounded border border-gray-300 px-4 py-2">Cancel</button>
-                <button type="submit" className="rounded bg-black px-4 py-2 text-white">Save</button>
+                  className="ui-button ui-button--secondary">Cancel</button>
+                <button type="submit" className="ui-button ui-button--primary">Save</button>
               </div>
             </form>
           </div>

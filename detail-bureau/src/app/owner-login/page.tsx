@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function OwnerLoginPage() {
   const router = useRouter()
@@ -33,19 +34,19 @@ export default function OwnerLoginPage() {
   }
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-white flex items-center justify-center p-4">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <p className="text-xl font-semibold text-black tracking-widest uppercase">
+          <Link href="/" className="inline-block text-xl font-semibold text-foreground tracking-widest uppercase transition-colors hover:text-violet-700">
             The Detail Bureau
-          </p>
-          <p className="text-gray-600 text-sm mt-1">Owner Portal</p>
+          </Link>
+          <p className="text-text-muted text-sm mt-1">Owner Portal</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-2xl p-8">
-          <h1 className="text-lg font-semibold text-black mb-6">Owner Sign In</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="ui-card p-6 sm:p-8">
+          <h1 className="text-lg font-semibold text-foreground mb-6">Owner Sign In</h1>
+          <form onSubmit={handleSubmit} className="space-y-4" aria-busy={loading}>
             <div>
-              <label htmlFor="username" className="block text-sm text-gray-700 mb-1">Username</label>
+              <label htmlFor="username" className="ui-form-label">Username</label>
               <input
                 id="username"
                 type="text"
@@ -53,11 +54,11 @@ export default function OwnerLoginPage() {
                 onChange={e => setForm({ ...form, username: e.target.value })}
                 required
                 autoComplete="username"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+                className="ui-input"
               />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
+              <label htmlFor="password" className="ui-form-label">Password</label>
               <input
                 id="password"
                 type="password"
@@ -65,18 +66,19 @@ export default function OwnerLoginPage() {
                 onChange={e => setForm({ ...form, password: e.target.value })}
                 required
                 autoComplete="current-password"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+                className="ui-input"
               />
             </div>
             {error && (
-              <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              <p role="alert" className="ui-alert ui-alert--error">
                 {error}
               </p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black hover:bg-gray-800 disabled:opacity-50 text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+              aria-busy={loading}
+              className="ui-button ui-button--primary w-full"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>

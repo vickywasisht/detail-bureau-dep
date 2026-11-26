@@ -17,7 +17,8 @@ export interface ReviewSummary {
 
 // Average + count + how many reviews per star (visible reviews only)
 export async function getReviewSummary(): Promise<ReviewSummary> {
-  const { data } = await adminClient.from('reviews').select('rating').eq('is_visible', true)
+  const { data, error } = await adminClient.from('reviews').select('rating').eq('is_visible', true)
+  if (error) throw error
   const ratings = (data ?? []).map(r => r.rating as number)
   const count = ratings.length
   return {
@@ -29,12 +30,13 @@ export async function getReviewSummary(): Promise<ReviewSummary> {
 
 // Newest visible reviews. minRating: 5 => "recent five-star reviews" (story #15)
 export async function getReviews({ minRating = 1, limit = 50 }: { minRating?: number; limit?: number } = {}) {
-  const { data } = await adminClient
+  const { data, error } = await adminClient
     .from('reviews')
     .select('id, reviewer_name, rating, title, comment, created_at')
     .eq('is_visible', true)
     .gte('rating', minRating)
     .order('created_at', { ascending: false })
     .limit(limit)
+  if (error) throw error
   return (data ?? []) as PublicReview[]
 }

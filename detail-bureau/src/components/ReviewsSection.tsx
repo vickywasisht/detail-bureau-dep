@@ -2,9 +2,27 @@ import Link from 'next/link'
 import Stars from '@/components/Stars'
 import ReviewCard from '@/components/ReviewCard'
 import type { PublicReview, ReviewSummary } from '@/lib/reviews'
+import DataState from '@/components/DataState'
 
 // Homepage block. Renders nothing until at least one review exists.
-export default function ReviewsSection({ summary, reviews }: { summary: ReviewSummary; reviews: PublicReview[] }) {
+export default function ReviewsSection({
+  summary,
+  reviews,
+  hasError = false,
+}: {
+  summary: ReviewSummary
+  reviews: PublicReview[]
+  hasError?: boolean
+}) {
+  if (hasError) {
+    return (
+      <section className="bg-gray-50 px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <DataState kind="error" title="Customer reviews are temporarily unavailable." />
+        </div>
+      </section>
+    )
+  }
   if (summary.count === 0 || reviews.length === 0) return null
 
   return (

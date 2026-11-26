@@ -39,12 +39,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-8 border border-gray-200">
-      <h1 className="text-xl font-semibold text-black mb-6">Sign in</h1>
+    <div className="ui-card p-6 sm:p-8">
+      <h1 className="text-xl font-semibold text-foreground mb-6">Sign in</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-busy={loading}>
         <div>
-          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email</label>
+          <label htmlFor="email" className="ui-form-label">Email</label>
           <input
             id="email"
             name="email"
@@ -53,12 +53,12 @@ export default function LoginPage() {
             onChange={handleChange}
             required
             autoComplete="email"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
+          <label htmlFor="password" className="ui-form-label">Password</label>
           <input
             id="password"
             name="password"
@@ -67,12 +67,12 @@ export default function LoginPage() {
             onChange={handleChange}
             required
             autoComplete="current-password"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p role="alert" className="ui-alert ui-alert--error">
             {error}
           </p>
         )}
@@ -80,22 +80,23 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-black hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+          aria-busy={loading}
+          className="ui-button ui-button--primary w-full"
         >
           {loading ? 'Signing in...' : 'Sign in'}
         </button>
       </form>
 
-      <p className="text-center text-gray-600 text-sm mt-6">
+      <p className="text-center text-text-muted text-sm mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-blue-700 underline hover:text-blue-900">
+        <Link href="/signup" className="text-primary underline hover:opacity-75">
           Create one
         </Link>
       </p>
 
-      <p className="text-center text-gray-600 text-xs mt-3">
+      <p className="text-center text-text-muted text-xs mt-3">
         Are you an employee?{' '}
-        <Link href="/employee-login" className="text-gray-700 underline hover:text-black">
+        <Link href="/employee-login" className="text-primary underline hover:opacity-75">
           Employee login →
         </Link>
       </p>

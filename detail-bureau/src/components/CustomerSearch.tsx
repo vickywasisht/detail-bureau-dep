@@ -16,6 +16,7 @@ export default function CustomerSearch() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Result[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
   const box = useRef<HTMLDivElement>(null)
@@ -29,15 +30,22 @@ export default function CustomerSearch() {
     let stale = false
     const timer = setTimeout(async () => {
       setLoading(true)
+      setLoadError('')
+      setResults([])
       try {
         const res = await fetch(`/api/employee/customers/search?q=${encodeURIComponent(trimmed)}`)
-        const data = res.ok ? await res.json() : []
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error ?? 'Could not search customers.')
+        }
+        const data: unknown = await res.json()
+        if (!Array.isArray(data)) throw new Error('Customer search results could not be displayed.')
         if (stale) return
-        setResults(Array.isArray(data) ? data : [])
+        setResults(data)
         setActive(-1)
         setOpen(true)
-      } catch {
-        if (!stale) setResults([])
+      } catch (error) {
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not search customers.')
       } finally {
         if (!stale) setLoading(false)
       }
@@ -97,7 +105,14 @@ export default function CustomerSearch() {
         autoComplete="off"
         placeholder="Search by name, email, phone or vehicle"
         value={query}
-        onChange={e => { setQuery(e.target.value); setOpen(true) }}
+        onChange={e => {
+          setQuery(e.target.value)
+          setResults([])
+          setLoading(false)
+          setLoadError('')
+          setActive(-1)
+          setOpen(true)
+        }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         className="w-full border border-gray-300 bg-white text-black placeholder-gray-500 rounded-lg px-4 py-2.5 focus:outline-none focus:border-black"
@@ -109,11 +124,14 @@ export default function CustomerSearch() {
           role="listbox"
           className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
-          {loading && results.length === 0 && (
-            <li className="px-4 py-3 text-sm text-gray-600">Searching...</li>
+          {loading && (
+            <li role="status" className="px-4 py-3 text-sm text-text-muted">Searching customers...</li>
           )}
-          {!loading && results.length === 0 && (
-            <li className="px-4 py-3 text-sm text-gray-600">No customers found.</li>
+          {!loading && loadError && (
+            <li role="alert" className="px-4 py-3 text-sm text-danger">{loadError}</li>
+          )}
+          {!loading && !loadError && results.length === 0 && (
+            <li className="px-4 py-3 text-sm text-text-muted">No customers found.</li>
           )}
           {results.map((r, i) => (
             <li

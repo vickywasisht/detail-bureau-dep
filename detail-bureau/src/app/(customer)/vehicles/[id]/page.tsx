@@ -3,23 +3,9 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
 import BookingPayment from '@/components/BookingPayment'
+import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 import type { PaymentStatus } from '@/lib/payments'
-
-const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
-  confirmed: 'bg-green-50 text-green-700 border border-green-200',
-  in_progress: 'bg-blue-50 text-blue-700 border border-blue-200',
-  completed: 'bg-gray-100 text-gray-600 border border-gray-200',
-  cancelled: 'bg-red-50 text-red-700 border border-red-200',
-}
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-}
 
 const PACKAGE_LABELS: Record<string, string> = {
   basic: 'Basic – Express Shine',
@@ -57,16 +43,19 @@ export default async function VehicleDetailPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: vehicle } = await supabase
+  const { data: vehicle, error: vehicleError } = await supabase
     .from('vehicles')
     .select('*')
     .eq('id', id)
     .eq('customer_id', user.id)
     .single()
 
+  if (vehicleError && vehicleError.code !== 'PGRST116') {
+    return <DataState kind="error" title="We couldn’t load this vehicle." description="Please try again in a moment." />
+  }
   if (!vehicle) notFound()
 
-  const { data: bookings } = await supabase
+  const { data: bookings, error: bookingsError } = await supabase
     .from('bookings')
     .select('*')
     .eq('vehicle_id', id)
@@ -82,9 +71,9 @@ export default async function VehicleDetailPage({
 
   // which completed bookings already have a review?
   const historyIds = history.map((b: Booking) => b.id)
-  const { data: reviewed } = historyIds.length
+  const { data: reviewed, error: reviewsError } = historyIds.length
     ? await supabase.from('reviews').select('booking_id').in('booking_id', historyIds)
-    : { data: [] as { booking_id: string }[] }
+    : { data: [] as { booking_id: string }[], error: null }
   const reviewedIds = new Set((reviewed ?? []).map(r => r.booking_id))
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
@@ -92,62 +81,70 @@ export default async function VehicleDetailPage({
   return (
     <div>
       {payment === 'success' && (
-        <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div role="status" className="ui-alert ui-alert--success mb-6">
           Payment received, thank you! It can take a few seconds to show up below.
         </div>
       )}
       {payment === 'cancelled' && (
-        <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+        <div role="status" className="ui-alert ui-alert--warning mb-6">
           Payment was cancelled. Your booking is saved and you can pay any time below.
         </div>
       )}
       {payment === 'error' && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div role="alert" className="ui-alert ui-alert--error mb-6">
           Your booking is saved, but we couldn&apos;t start the payment. Please try again below.
         </div>
       )}
       <div className="mb-6">
-        <Link href="/dashboard" className="text-gray-500 hover:text-black text-sm transition-colors">
+        <Link href="/dashboard" className="text-text-muted hover:text-foreground text-sm transition-colors">
           ← Back to My Vehicles
         </Link>
-        <div className="flex items-center justify-between mt-3">
+        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-black">
+            <h1 className="text-2xl font-bold text-foreground">
               {vehicle.year} {vehicle.make} {vehicle.model}
             </h1>
-            <p className="text-gray-600 text-sm mt-1">
+            <p className="mt-1 text-text-muted text-sm">
               {vehicle.vehicle_type}{vehicle.color ? ` · ${vehicle.color}` : ''}
             </p>
           </div>
           <Link
             href={`/book-service?vehicle_id=${vehicle.id}`}
-            className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="dashboard-action"
           >
-            + Book a Service
+            <span aria-hidden="true">✨</span> Book a Service
           </Link>
         </div>
       </div>
 
+      {bookingsError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load this vehicle’s bookings."
+          description="Please try again in a moment."
+        />
+      ) : (
+      <>
       {/* Scheduled Bookings */}
       <section className="mb-10">
-        <h2 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
+        <h2 className="mb-4 border-b border-violet-100 pb-2 text-xl font-bold text-foreground">
           Scheduled
         </h2>
         {scheduled.length > 0 ? (
           <div className="space-y-3">
-            {scheduled.map((booking: Booking) => (
-              <div key={booking.id} className="bg-white border border-gray-200 rounded-xl p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-black font-medium">
+            {scheduled.map((booking: Booking, index) => (
+              <div
+                key={booking.id}
+                className={`dashboard-card dashboard-card--${['sky', 'violet', 'teal'][index % 3]} dashboard-enter p-5`}
+                style={{ animationDelay: `${index * 55}ms` }}
+              >
+                <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">
                     {PACKAGE_LABELS[booking.package_slug] ?? booking.package_label}
                   </h3>
-                  {/* ------------------------------------------------------ */}
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[booking.booking_status]}`}>
-                    {STATUS_LABELS[booking.booking_status]}
-                  </span>
-                  {/* ------------------------------------------------------ */}
+                  <BookingStatusBadge status={booking.booking_status} />
                 </div>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                <div className="flex flex-wrap gap-4 text-sm text-text-muted">
                   <span>
                     📅 {new Date(booking.service_date).toLocaleDateString('en-US', {
                       weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
@@ -180,18 +177,20 @@ export default async function VehicleDetailPage({
                   <ServiceDetailsButton
                     service={{ ...booking, vehicle: vehicleName }}
                     label="View full details"
-                    className="text-blue-600 hover:text-blue-700 text-sm"
+                    className="text-primary hover:opacity-75 text-sm"
                   />
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-            <p className="text-gray-500 text-sm">No upcoming bookings.</p>
+          <div className="dashboard-empty">
+            <div className="mb-3 text-4xl" aria-hidden="true">🗓️</div>
+            <p className="font-semibold text-foreground">Nothing on the calendar yet</p>
+            <p className="mt-1 text-sm text-text-muted">Book your next detail whenever you&apos;re ready.</p>
             <Link
               href={`/book-service?vehicle_id=${vehicle.id}`}
-              className="text-blue-600 hover:text-blue-700 text-sm mt-1 inline-block"
+              className="dashboard-action mt-4"
             >
               Book a service →
             </Link>
@@ -201,14 +200,22 @@ export default async function VehicleDetailPage({
 
       {/* Service History */}
       <section>
-        <h2 className="text-lg font-semibold text-black mb-4 pb-2 border-b border-gray-200">
+        <h2 className="mb-4 border-b border-violet-100 pb-2 text-xl font-bold text-foreground">
           Service History
         </h2>
+        {reviewsError && (
+          <DataState
+            kind="error"
+            title="Review status is unavailable."
+            description="You can still view your history, but review links are temporarily hidden."
+            className="mb-4"
+          />
+        )}
         {history.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="dashboard-table min-w-[640px] text-sm">
               <thead>
-                <tr className="text-gray-500 text-left">
+                <tr className="text-left">
                   <th className="pb-3 font-medium">Date</th>
                   <th className="pb-3 font-medium">Service</th>
                   <th className="pb-3 font-medium">Technician</th>
@@ -216,7 +223,7 @@ export default async function VehicleDetailPage({
                   <th className="pb-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {history.map((booking: Booking) => (
                   <tr key={booking.id} className="text-gray-700">
                     <td className="py-3">
@@ -238,7 +245,9 @@ export default async function VehicleDetailPage({
                           : '—'}
                     </td>
                     <td className="py-3 text-right space-x-3">
-                      {reviewedIds.has(booking.id) ? (
+                      {reviewsError ? (
+                        <span className="text-sm text-text-muted">Review unavailable</span>
+                      ) : reviewedIds.has(booking.id) ? (
                         <span className="text-gray-500 text-sm">Reviewed ✓</span>
                       ) : (
                         <Link href={`/write-review?booking_id=${booking.id}`} className="text-blue-600 hover:text-blue-700 text-sm">
@@ -256,11 +265,11 @@ export default async function VehicleDetailPage({
             </table>
           </div>
         ) : (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-            <p className="text-gray-500 text-sm">No completed services yet.</p>
-          </div>
+          <DataState kind="empty" title="Your first shine is still ahead" description="Completed details will appear here." />
         )}
       </section>
+      </>
+      )}
     </div>
   )
 }

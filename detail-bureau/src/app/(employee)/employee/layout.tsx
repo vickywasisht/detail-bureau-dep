@@ -17,7 +17,7 @@ export default async function EmployeeLayout({
   if (!employee) redirect('/employee-login')
     
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       <EmployeeNav employee={employee} />
       <main id="main-content" tabIndex={-1} className="max-w-6xl mx-auto px-4 py-8">
         {children}

@@ -83,13 +83,13 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-8 border border-gray-200">
-      <h1 className="text-xl font-semibold text-black mb-6">Create an account</h1>
+    <div className="ui-card p-6 sm:p-8">
+      <h1 className="text-xl font-semibold text-foreground mb-6">Create an account</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="space-y-4" aria-busy={loading}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="first_name" className="block text-sm text-gray-700 mb-1">First name</label>
+            <label htmlFor="first_name" className="ui-form-label">First name</label>
             <input
               id="first_name"
               name="first_name"
@@ -97,11 +97,11 @@ export default function SignupPage() {
               value={form.first_name}
               onChange={handleChange}
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+              className="ui-input"
             />
           </div>
           <div>
-            <label htmlFor="last_name" className="block text-sm text-gray-700 mb-1">Last name</label>
+            <label htmlFor="last_name" className="ui-form-label">Last name</label>
             <input
               id="last_name"
               name="last_name"
@@ -109,13 +109,13 @@ export default function SignupPage() {
               value={form.last_name}
               onChange={handleChange}
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+              className="ui-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email</label>
+          <label htmlFor="email" className="ui-form-label">Email</label>
           <input
             id="email"
             name="email"
@@ -124,12 +124,12 @@ export default function SignupPage() {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm text-gray-700 mb-1">Phone (optional)</label>
+          <label htmlFor="phone" className="ui-form-label">Phone (optional)</label>
           <input
             id="phone"
             name="phone"
@@ -137,12 +137,12 @@ export default function SignupPage() {
             type="tel"
             value={form.phone}
             onChange={handleChange}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
+          <label htmlFor="password" className="ui-form-label">Password</label>
           <input
             id="password"
             name="password"
@@ -151,12 +151,12 @@ export default function SignupPage() {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         <div>
-          <label htmlFor="confirm_password" className="block text-sm text-gray-700 mb-1">Confirm password</label>
+          <label htmlFor="confirm_password" className="ui-form-label">Confirm password</label>
           <input
             id="confirm_password"
             name="confirm_password"
@@ -165,12 +165,12 @@ export default function SignupPage() {
             value={form.confirm_password}
             onChange={handleChange}
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-black text-sm focus:outline-none focus:border-black"
+            className="ui-input"
           />
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p role="alert" className="ui-alert ui-alert--error">
             {error}
           </p>
         )}
@@ -178,7 +178,8 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-black hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg py-2.5 text-sm transition-colors"
+          aria-busy={loading}
+          className="ui-button ui-button--primary w-full"
         >
           {loading ? 'Creating account...' : 'Create account'}
         </button>
@@ -186,7 +187,7 @@ export default function SignupPage() {
 
       <p className="text-center text-gray-600 text-sm mt-6">
         Already have an account?{' '}
-        <Link href="/login" className="text-black hover:text-gray-700 font-medium">
+        <Link href="/login" className="text-primary hover:opacity-75 font-medium">
           Sign in
         </Link>
       </p>

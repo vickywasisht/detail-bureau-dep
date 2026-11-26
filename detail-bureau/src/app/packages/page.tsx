@@ -48,7 +48,7 @@ const PACKAGES = [
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'Truck', 'Van', 'Convertible'] as const
 
 export default async function PackagesPage() {
-  const [{ data: info }, { data: rows }] = await Promise.all([
+  const [{ data: info, error: packageError }, { data: rows, error: pricingError }] = await Promise.all([
     adminClient.from('service_packages').select('slug, description'),
     adminClient.from('service_pricing').select('package_slug, vehicle_type, price, duration_hours'),
   ])
@@ -74,6 +74,12 @@ export default async function PackagesPage() {
           <h1 className="text-4xl font-bold text-black mb-4">Our Packages</h1>
           <p className="text-gray-500 text-lg">Pricing varies by vehicle type. All prices are estimates — final price confirmed at drop-off.</p>
         </div>
+
+        {(packageError || pricingError) && (
+          <div role="status" className="ui-alert ui-alert--warning mb-8 text-center">
+            Live package details are temporarily unavailable, so these default estimates are shown. Please confirm pricing before booking.
+          </div>
+        )}
 
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {live.map(pkg => (
