@@ -224,43 +224,45 @@ export default function OwnerPricingPage() {
                 />
               </label>
 
-              <table className="w-full min-w-[300px] text-left text-sm">
-                <thead>
-                <tr className="border-b border-violet-100 text-text-muted">
-                  <th className="py-2">Vehicle</th>
-                  <th className="py-2">Price ($)</th>
-                  <th className="py-2">Hours</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {VEHICLE_TYPES.map(type => {
-                    const r = draft.pricing.find(x => x.package_slug === p.slug && x.vehicle_type === type)
-                    if (!r) return null
-                    return (
-                      <tr key={r.id} className="border-b border-border">
-                        <td className="py-2 pr-2 text-foreground">{type}</td>
-                        <td className="py-2 pr-2">
-                          <input
-                            type="number" min="0" step="0.01"
-                            value={r.price}
-                            onChange={e => setPriceField(r.id, 'price', e.target.value)}
-                            className="ui-input ui-input--compact"
-                            aria-label={`${p.name} price for ${type}`}
-                          />
-                        </td>
-                        <td className="py-2">
-                          <input
-                            value={r.duration_hours}
-                            onChange={e => setPriceField(r.id, 'duration_hours', e.target.value)}
-                            className="ui-input ui-input--compact"
-                            aria-label={`${p.name} duration for ${type}`}
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[300px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-violet-100 text-text-muted">
+                      <th className="py-2">Vehicle</th>
+                      <th className="py-2">Price ($)</th>
+                      <th className="py-2">Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {VEHICLE_TYPES.map(type => {
+                      const r = draft.pricing.find(x => x.package_slug === p.slug && x.vehicle_type === type)
+                      if (!r) return null
+                      return (
+                        <tr key={r.id} className="border-b border-border">
+                          <td className="py-2 pr-2 text-foreground">{type}</td>
+                          <td className="py-2 pr-2">
+                            <input
+                              type="number" min="0" step="0.01"
+                              value={r.price}
+                              onChange={e => setPriceField(r.id, 'price', e.target.value)}
+                              className="ui-input ui-input--compact"
+                              aria-label={`${p.name} price for ${type}`}
+                            />
+                          </td>
+                          <td className="py-2">
+                            <input
+                              value={r.duration_hours}
+                              onChange={e => setPriceField(r.id, 'duration_hours', e.target.value)}
+                              className="ui-input ui-input--compact"
+                              aria-label={`${p.name} duration for ${type}`}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ))}
         </div>}

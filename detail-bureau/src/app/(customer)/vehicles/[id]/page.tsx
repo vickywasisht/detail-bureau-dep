@@ -138,7 +138,7 @@ export default async function VehicleDetailPage({
                 className={`dashboard-card dashboard-card--${['sky', 'violet', 'teal'][index % 3]} dashboard-enter p-5`}
                 style={{ animationDelay: `${index * 55}ms` }}
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                   <h3 className="font-semibold text-foreground">
                     {PACKAGE_LABELS[booking.package_slug] ?? booking.package_label}
                   </h3>

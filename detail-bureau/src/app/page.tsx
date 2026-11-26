@@ -52,9 +52,9 @@ export default async function HomePage() {
 
       <main id="main-content" tabIndex={-1}>
       {/* Hero */}
-      <section className="bg-black text-white py-28 px-6 text-center">
+      <section className="bg-black px-4 py-20 text-center text-white sm:px-6 sm:py-28">
         <p className="text-sm tracking-widest uppercase text-gray-400 mb-4">Professional Auto Detailing</p>
-        <h1 className="text-5xl font-bold tracking-tight mb-6 max-w-2xl mx-auto leading-tight">
+        <h1 className="mx-auto mb-6 max-w-2xl text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
           Your Vehicle Deserves the Best
         </h1>
         <p className="text-gray-400 text-lg max-w-xl mx-auto mb-10">

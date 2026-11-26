@@ -103,7 +103,7 @@ export default async function EmployeeDashboardPage() {
               className={`dashboard-card dashboard-card--${index % 2 ? 'teal' : 'sky'} dashboard-enter block p-5`}
               style={{ animationDelay: `${index * 55}ms` }}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-foreground">
                     {b.customers?.first_name} {b.customers?.last_name}

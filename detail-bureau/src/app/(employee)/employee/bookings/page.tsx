@@ -48,7 +48,7 @@ export default async function EmployeeBookingsPage() {
             className={`dashboard-card dashboard-card--${index % 2 ? 'teal' : 'sky'} dashboard-enter block p-5`}
             style={{ animationDelay: `${index * 55}ms` }}
           >
-            <div className="flex items-start justify-between">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <p className="font-semibold text-foreground">
@@ -65,7 +65,7 @@ export default async function EmployeeBookingsPage() {
                   })} at {b.dropoff_time}
                 </p>
               </div>
-              <p className="ml-4 whitespace-nowrap text-sm font-semibold text-violet-700">
+              <p className="ml-auto whitespace-nowrap text-sm font-semibold text-violet-700">
                 ${Number(b.quoted_price ?? 0).toFixed(2)}
               </p>
             </div>

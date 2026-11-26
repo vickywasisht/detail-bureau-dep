@@ -167,7 +167,7 @@ export default function ProfilePage() {
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Edit Profile</h2>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">First name</label>
                 <input
@@ -261,7 +261,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between items-center pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
           <Link href="/dashboard" className="text-gray-500 hover:text-black text-sm transition-colors">
             ← Back to Dashboard
           </Link>

@@ -59,7 +59,7 @@ function BookServiceForm() {
         {/* Customer info — readonly */}
         <div className="ui-card ui-card--muted p-5">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">Your Information</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="first_name" className="ui-form-label">First name</label>
               <input id="first_name" value={customer?.first_name ?? ''} readOnly className="ui-input" />
@@ -78,7 +78,7 @@ function BookServiceForm() {
         {/* Vehicle info — readonly */}
         <div className="ui-card ui-card--muted p-5">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">Vehicle</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="vehicle_name" className="ui-form-label">Vehicle</label>
               <input id="vehicle_name" value={vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : ''} readOnly className="ui-input" />
@@ -93,7 +93,7 @@ function BookServiceForm() {
         {/* Drop-off */}
         <div className="ui-card ui-card--muted p-5">
           <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">Preferred Drop-off</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="dropoff_date" className="ui-form-label">Date <span className="text-danger">*</span></label>
               <input id="dropoff_date" type="date" name="dropoff_date" value={form.dropoff_date} onChange={handleChange} min={today} required className="ui-input" />
