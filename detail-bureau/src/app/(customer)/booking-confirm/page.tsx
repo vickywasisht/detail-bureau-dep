@@ -102,12 +102,12 @@ function BookingConfirmForm() {
       <div className="mb-6">
         <Link
           href={`/booking-pricing?vehicle_id=${vehicleId}&vehicle_type=${vehicleType}&dropoff_date=${dropoffDate}&dropoff_time=${encodeURIComponent(dropoffTime)}&special_notes=${encodeURIComponent(specialNotes)}`}
-          className="text-gray-600 hover:text-black text-sm"
+          className="text-text-muted hover:text-foreground text-sm"
         >
           ← Change Package
         </Link>
-        <h1 className="text-2xl font-semibold text-black mt-3">Confirm Booking</h1>
-        <p className="text-gray-600 text-sm mt-1">Review your details before confirming.</p>
+        <h1 className="text-2xl font-semibold text-foreground mt-3">Confirm Booking</h1>
+        <p className="text-text-muted text-sm mt-1">Review your details before confirming.</p>
       </div>
 
       <div className="space-y-3 mb-6">
@@ -124,13 +124,13 @@ function BookingConfirmForm() {
           },
           ...(specialNotes ? [{ title: 'Notes', rows: [['', specialNotes]] }] : []),
         ].map(section => (
-          <div key={section.title} className="bg-gray-50 border border-gray-200 rounded-xl p-5">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{section.title}</h2>
+          <div key={section.title} className="ui-card ui-card--muted p-5">
+            <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">{section.title}</h2>
             <div className="space-y-2">
               {section.rows.map(([label, value]) => (
                 <div key={label} className={`flex text-sm ${label ? 'justify-between' : ''}`}>
-                  {label && <span className="text-gray-500">{label}</span>}
-                  <span className={`text-black ${label === 'Quoted price' ? 'text-blue-600 font-semibold' : ''}`}>{value}</span>
+                  {label && <span className="text-text-muted">{label}</span>}
+                  <span className={`text-foreground ${label === 'Quoted price' ? 'text-primary font-semibold' : ''}`}>{value}</span>
                 </div>
               ))}
             </div>
@@ -152,13 +152,13 @@ function BookingConfirmForm() {
             vehicle: vehicleType,
           }}
           label="View full package & add-on details"
-          className="text-blue-600 hover:text-blue-700 text-sm"
+          className="text-primary hover:opacity-75 text-sm"
         />
       </div>
 
       {addons.length > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Add-ons (optional)</h2>
+        <div className="ui-card ui-card--muted p-5 mb-4">
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Add-ons (optional)</h2>
           <div className="space-y-3">
             {addons.map(a => (
               <label key={a.id} className="flex items-start gap-3 cursor-pointer">
@@ -168,11 +168,11 @@ function BookingConfirmForm() {
                   onChange={() => toggleAddon(a.id)}
                   className="mt-0.5 w-4 h-4 rounded border-gray-300"
                 />
-                <span className="flex-1 text-sm text-gray-700">
-                  <span className="text-black">{a.name}</span>
-                  {a.description && <span className="block text-gray-500 text-xs">{a.description}</span>}
+                <span className="flex-1 text-sm text-text-muted">
+                  <span className="text-foreground">{a.name}</span>
+                  {a.description && <span className="block text-text-muted text-xs">{a.description}</span>}
                 </span>
-                <span className="text-sm text-black">+${Number(a.price).toFixed(2)}</span>
+                <span className="text-sm text-foreground">+${Number(a.price).toFixed(2)}</span>
               </label>
             ))}
           </div>
@@ -180,8 +180,8 @@ function BookingConfirmForm() {
       )}
 
       {/* Payment */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Payment</h2>
+      <div className="ui-card ui-card--muted p-5 mb-4">
+        <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Payment</h2>
         <div className="space-y-3">
           {([
             ['deposit', `Pay a ${DEPOSIT_PERCENT}% deposit now`, `${money(depositAmount(total))} today, the rest at drop-off`],
@@ -194,20 +194,20 @@ function BookingConfirmForm() {
                 checked={payOption === value} onChange={() => setPayOption(value)}
                 className="mt-0.5 w-4 h-4"
               />
-              <span className="flex-1 text-sm text-gray-700">
-                <span className="text-black">{title}</span>
-                <span className="block text-gray-500 text-xs">{sub}</span>
+              <span className="flex-1 text-sm text-text-muted">
+                <span className="text-foreground">{title}</span>
+                <span className="block text-text-muted text-xs">{sub}</span>
               </span>
             </label>
           ))}
         </div>
-        <p className="text-gray-500 text-xs mt-4">Payments are processed securely by Stripe. We never see or store your card details.</p>
+        <p className="text-text-muted text-xs mt-4">Payments are processed securely by Stripe. We never see or store your card details.</p>
       </div>
 
       {/* Cancellation Policy */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-4">
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Cancellation & Refund Policy</h2>
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">{POLICY_TEXT}</p>
+      <div className="ui-card ui-card--muted p-5 mb-4">
+        <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Cancellation & Refund Policy</h2>
+        <p className="text-text-muted text-sm leading-relaxed mb-4">{POLICY_TEXT}</p>
         <label className="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
@@ -215,22 +215,23 @@ function BookingConfirmForm() {
             onChange={e => { setPolicyAccepted(e.target.checked); setError('') }}
             className="mt-0.5 w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-500 focus:ring-offset-white"
           />
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-text-muted">
             I have read and agree to the cancellation and refund policy.
           </span>
         </label>
       </div>
 
-      <p className="text-gray-500 text-xs mb-4">* Final price confirmed at drop-off based on vehicle condition.</p>
+      <p className="text-text-muted text-xs mb-4">* Final price confirmed at drop-off based on vehicle condition.</p>
 
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p role="alert" className="ui-alert ui-alert--error mb-4">{error}</p>
       )}
 
       <button
         onClick={handleConfirm}
         disabled={!policyAccepted || loading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-3 text-sm transition-colors"
+        aria-busy={loading}
+        className="ui-button ui-button--primary w-full"
       >
         {loading ? 'Confirming...' : payOption === 'later' ? 'Confirm Booking' : `Confirm & Pay ${money(payNowAmount)}`}      </button>
     </div>
