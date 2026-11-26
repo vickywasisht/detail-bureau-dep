@@ -1,7 +1,15 @@
+import type { Metadata } from 'next'
 import Navbar from '@/components/navbar'
 import Link from 'next/link'
 import { adminClient } from '@/lib/supabase/admin'
 import { PACKAGE_INCLUDES } from '@/lib/package-details'
+
+export const metadata: Metadata = {
+  title: 'Auto Detailing Packages & Pricing',
+  description:
+    'Compare Basic, Value and Premium auto detailing packages with pricing by vehicle type: sedan, SUV, truck, van and convertible.',
+  alternates: { canonical: '/packages' },
+}
 
 const PACKAGES = [
   {
@@ -61,7 +69,7 @@ export default async function PackagesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-6 py-16">
+      <main id="main-content" tabIndex={-1} className="max-w-6xl mx-auto px-6 py-16">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-black mb-4">Our Packages</h1>
           <p className="text-gray-500 text-lg">Pricing varies by vehicle type. All prices are estimates — final price confirmed at drop-off.</p>
@@ -69,7 +77,7 @@ export default async function PackagesPage() {
 
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           {live.map(pkg => (
-            <div key={pkg.name} className={`border-2 rounded-2xl overflow-hidden relative ${pkg.popular ? 'border-black' : 'border-gray-200'}`}>
+            <div key={pkg.name} id={pkg.slug} className={`scroll-mt-6 border-2 rounded-2xl overflow-hidden relative ${pkg.popular ? 'border-black' : 'border-gray-200'}`}>
               {pkg.popular && (
                 <div className="bg-black text-white text-center text-xs font-bold py-2 tracking-widest uppercase">
                   Most Popular
@@ -77,7 +85,7 @@ export default async function PackagesPage() {
               )}
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-black">{pkg.name}</h2>
-                <p className="text-gray-500 text-sm mb-4">{pkg.subtitle}</p>
+                <p className="text-gray-600 text-sm mb-4">{pkg.subtitle}</p>
                 <p className="text-gray-600 text-sm leading-relaxed mb-6">{pkg.description}</p>
 
                 {/* Pricing by vehicle type */}
@@ -91,7 +99,7 @@ export default async function PackagesPage() {
                   ))}
                 </div>
 
-                <p className="text-xs text-gray-400 mb-6">⏱ Service time: {Object.values(pkg.duration)[0]} hours (Sedan)</p>
+                <p className="text-xs text-gray-600 mb-6">⏱ Service time: {Object.values(pkg.duration)[0]} hours (Sedan)</p>
 
                 {/* Exterior */}
                 <div className="mb-4">
@@ -137,13 +145,13 @@ export default async function PackagesPage() {
                       : 'border border-black text-black hover:bg-black hover:text-white'
                   }`}
                 >
-                  Book Now
+                  Book {pkg.name} Package
                 </Link>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-center text-gray-400 text-sm">* Prices shown are for a 2024 Sedan. Prices are specific to your vehicle type and size.</p>
+        <p className="text-center text-gray-600 text-sm">* Prices shown are for a 2024 Sedan. Prices are specific to your vehicle type and size.</p>
       </main>
     </div>
   )

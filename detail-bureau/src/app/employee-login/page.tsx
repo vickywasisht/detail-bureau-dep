@@ -32,20 +32,21 @@ export default function EmployeeLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-black tracking-widest uppercase">
+          <p className="text-xl font-semibold text-black tracking-widest uppercase">
             The Detail Bureau
-          </h1>
+          </p>
           <p className="text-gray-600 text-sm mt-1">Employee Portal</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-8">
-          <h2 className="text-lg font-semibold text-black mb-6">Employee Sign In</h2>
+          <h1 className="text-lg font-semibold text-black mb-6">Employee Sign In</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Username</label>
+              <label htmlFor="username" className="block text-sm text-gray-700 mb-1">Username</label>
               <input
+                id="username"
                 type="text"
                 value={form.username}
                 onChange={e => setForm({ ...form, username: e.target.value })}
@@ -55,8 +56,9 @@ export default function EmployeeLoginPage() {
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Password</label>
+              <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
               <input
+                id="password"
                 type="password"
                 value={form.password}
                 onChange={e => setForm({ ...form, password: e.target.value })}
@@ -80,6 +82,6 @@ export default function EmployeeLoginPage() {
           </form>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
