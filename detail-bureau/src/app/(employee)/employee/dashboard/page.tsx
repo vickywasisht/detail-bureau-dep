@@ -2,6 +2,7 @@ import { adminClient } from '@/lib/supabase/admin'
 import { getEmployeeFromToken } from '@/lib/employee-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import CustomerSearch from '@/components/CustomerSearch'
 
 interface BookingListItem {
   id: string
@@ -59,6 +60,10 @@ export default async function EmployeeDashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-black mb-8">Dashboard</h1>
+
+      <div className="mb-10">
+        <CustomerSearch />
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">

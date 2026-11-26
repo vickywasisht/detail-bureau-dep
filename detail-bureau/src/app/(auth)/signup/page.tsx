@@ -84,14 +84,16 @@ export default function SignupPage() {
 
   return (
     <div className="bg-white rounded-2xl p-8 border border-gray-200">
-      <h2 className="text-xl font-semibold text-black mb-6">Create an account</h2>
+      <h1 className="text-xl font-semibold text-black mb-6">Create an account</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm text-gray-700 mb-1">First name</label>
+            <label htmlFor="first_name" className="block text-sm text-gray-700 mb-1">First name</label>
             <input
+              id="first_name"
               name="first_name"
+              autoComplete="given-name"
               value={form.first_name}
               onChange={handleChange}
               required
@@ -99,9 +101,11 @@ export default function SignupPage() {
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-700 mb-1">Last name</label>
+            <label htmlFor="last_name" className="block text-sm text-gray-700 mb-1">Last name</label>
             <input
+              id="last_name"
               name="last_name"
+              autoComplete="family-name"
               value={form.last_name}
               onChange={handleChange}
               required
@@ -111,9 +115,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email</label>
           <input
+            id="email"
             name="email"
+            autoComplete="email"
             type="email"
             value={form.email}
             onChange={handleChange}
@@ -123,9 +129,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Phone (optional)</label>
+          <label htmlFor="phone" className="block text-sm text-gray-700 mb-1">Phone (optional)</label>
           <input
+            id="phone"
             name="phone"
+            autoComplete="tel"
             type="tel"
             value={form.phone}
             onChange={handleChange}
@@ -134,9 +142,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Password</label>
+          <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Password</label>
           <input
+            id="password"
             name="password"
+            autoComplete="new-password"
             type="password"
             value={form.password}
             onChange={handleChange}
@@ -146,9 +156,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-gray-700 mb-1">Confirm password</label>
+          <label htmlFor="confirm_password" className="block text-sm text-gray-700 mb-1">Confirm password</label>
           <input
+            id="confirm_password"
             name="confirm_password"
+            autoComplete="new-password"
             type="password"
             value={form.confirm_password}
             onChange={handleChange}
