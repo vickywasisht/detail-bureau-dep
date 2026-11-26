@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { parseBody, vehicleCreateSchema } from '@/lib/validation'
 
 export async function GET() {
   const supabase = await createClient()
@@ -21,12 +22,9 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const { data: body, error: validationError } = await parseBody(req, vehicleCreateSchema)
+  if (validationError) return validationError
   const { make, model, year, color, vehicle_type } = body
-
-  if (!make || !model || !year || !vehicle_type) {
-    return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
-  }
 
   const { data, error } = await supabase
     .from('vehicles')

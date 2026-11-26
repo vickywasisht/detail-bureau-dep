@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { adminClient } from '@/lib/supabase/admin'
+import { parseBody, reviewCreateSchema } from '@/lib/validation'
 
 // POST { booking_id, rating, title?, comment }  (logged-in customers only)
 export async function POST(req: NextRequest) {
@@ -8,25 +9,15 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json().catch(() => ({}))
-  const rating = Number(body.rating)
-  const title = typeof body.title === 'string' ? body.title.trim() : ''
-  const comment = typeof body.comment === 'string' ? body.comment.trim() : ''
-
-  if (!body.booking_id) return NextResponse.json({ error: 'Missing booking.' }, { status: 400 })
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: 'Rating must be between 1 and 5.' }, { status: 400 })
-  }
-  if (comment.length < 10 || comment.length > 1000) {
-    return NextResponse.json({ error: 'Review must be between 10 and 1000 characters.' }, { status: 400 })
-  }
-  if (title.length > 100) return NextResponse.json({ error: 'Title is too long.' }, { status: 400 })
+  const { data: body, error: validationError } = await parseBody(req, reviewCreateSchema)
+  if (validationError) return validationError
+  const { booking_id, rating, title, comment } = body
 
   // Only your own COMPLETED booking can be reviewed
   const { data: booking } = await adminClient
     .from('bookings')
     .select('id, booking_status')
-    .eq('id', body.booking_id)
+    .eq('id', booking_id)
     .eq('customer_id', user.id)
     .single()
   if (!booking) return NextResponse.json({ error: 'Booking not found.' }, { status: 404 })

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient } from '@/lib/supabase/admin'
 import { requireOwner } from '@/lib/employee-auth'
-
-const STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']
+import { bookingStatusUpdateSchema, parseBody } from '@/lib/validation'
 
 export async function PATCH(
         req: NextRequest,
@@ -16,13 +15,12 @@ export async function PATCH(
 
     //get info from request and the id
     const { id } = await params
-    const { booking_status, employee_id } = await req.json()
+    const { data: body, error: validationError } = await parseBody(req, bookingStatusUpdateSchema)
+    if (validationError) return validationError
+    const { booking_status, employee_id } = body
     const updates: Record<string, unknown> = {}
 
     if (booking_status !== undefined) {
-        if (!STATUSES.includes(booking_status)) {
-        return NextResponse.json({ error: 'Invalid status.' }, { status: 400 })
-        }
         updates.booking_status = booking_status
     }
 

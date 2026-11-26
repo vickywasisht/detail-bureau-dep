@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { adminClient } from '@/lib/supabase/admin'
 import { requireOwner } from '@/lib/employee-auth'
+import { employeeCreateSchema, parseBody } from '@/lib/validation'
 
 const FIELDS = 'id, username, first_name, last_name, email, role, is_active, created_at'
 
@@ -19,20 +20,9 @@ export async function POST(req: NextRequest) {
   const owner = await requireOwner()
   if (!owner) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { username, first_name, last_name, email, password, role } = await req.json()
-
-  if (!username || !first_name || !last_name || !email || !password) {
-    return NextResponse.json({ error: 'All fields are required.' }, { status: 400 })
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'Enter a valid email address.' }, { status: 400 })
-  }
-  if (password.length < 8) {
-    return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 })
-  }
-  if (!['owner', 'employee'].includes(role)) {
-    return NextResponse.json({ error: 'Invalid role.' }, { status: 400 })
-  }
+  const { data: body, error: validationError } = await parseBody(req, employeeCreateSchema)
+  if (validationError) return validationError
+  const { username, first_name, last_name, email, password, role } = body
 
   const { data: existing } = await adminClient
     .from('employees').select('id').eq('username', username).maybeSingle()

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { adminClient } from '@/lib/supabase/admin'
 import nodemailer from 'nodemailer'
+import { bookingCreateSchema, escapeHtml, PACKAGE_LABELS, parseBody } from '@/lib/validation'
 
 export async function GET() {
   const supabase = await createClient()
@@ -23,24 +24,39 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const {
-    vehicle_id, package_slug, package_label,
-    service_date, dropoff_time, duration_hours,
-    quoted_price, special_notes, addon_ids,
-  } = body
+  const { data: body, error: validationError } = await parseBody(req, bookingCreateSchema)
+  if (validationError) return validationError
+  const { vehicle_id, package_slug, service_date, dropoff_time, special_notes, addon_ids } = body
 
-  if (!vehicle_id || !package_slug || !service_date || !dropoff_time) {
-    return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+  // the vehicle must belong to the logged-in customer (never trust a vehicle_id across accounts)
+  const { data: vehicle } = await supabase
+    .from('vehicles')
+    .select('id, vehicle_type')
+    .eq('id', vehicle_id)
+    .eq('customer_id', user.id)
+    .single()
+  if (!vehicle) return NextResponse.json({ error: 'Vehicle not found.' }, { status: 404 })
+
+  // the base price and label always come from the server, never the client
+  const { data: pricingRow } = await adminClient
+    .from('service_pricing')
+    .select('price, duration_hours')
+    .eq('package_slug', package_slug)
+    .eq('vehicle_type', vehicle.vehicle_type)
+    .maybeSingle()
+  if (!pricingRow) {
+    return NextResponse.json({ error: 'Pricing is not available for this package and vehicle type.' }, { status: 400 })
   }
+  const package_label = PACKAGE_LABELS[package_slug]
+  const duration_hours = pricingRow.duration_hours
 
   // add-on prices are looked up server-side so a customer can't send their own
   let addons: { id: string; name: string; description: string | null; price: number }[] = []
-  if (Array.isArray(addon_ids) && addon_ids.length > 0) {
+  if (addon_ids && addon_ids.length > 0) {
     const { data } = await adminClient.from('addons').select('id, name, description, price').in('id', addon_ids)
     addons = (data ?? []).map(a => ({ id: a.id, name: a.name, description: a.description, price: Number(a.price) }))
   }
-  const totalPrice = Number(quoted_price) + addons.reduce((n, a) => n + a.price, 0)
+  const totalPrice = Number(pricingRow.price) + addons.reduce((n, a) => n + a.price, 0)
 
   const { data: booking, error } = await adminClient
     .from('bookings')
@@ -81,6 +97,10 @@ export async function POST(req: NextRequest) {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       })
 
+      // escape anything the customer typed before it goes into the HTML email
+      const safeFirstName = escapeHtml(customer.first_name)
+      const safeNotes = special_notes ? escapeHtml(special_notes) : ''
+
       await transporter.sendMail({
         from: process.env.EMAIL_FROM,
         to: customer.email,
@@ -115,11 +135,11 @@ export async function POST(req: NextRequest) {
               <p>Professional Auto Detailing</p>
             </div>
             <div class="body">
-              <p style="font-size:16px;color:#333">Hi ${customer.first_name},</p>
+              <p style="font-size:16px;color:#333">Hi ${safeFirstName},</p>
               <p style="color:#555;font-size:15px;line-height:1.6">Your booking has been received! Here's your appointment summary.</p>
               <div class="sec-title">Vehicle</div>
               <table>
-                <tr><td>Vehicle</td><td>${booking.vehicles?.year} ${booking.vehicles?.make} ${booking.vehicles?.model}</td></tr>
+                <tr><td>Vehicle</td><td>${booking.vehicles?.year} ${escapeHtml(booking.vehicles?.make ?? '')} ${escapeHtml(booking.vehicles?.model ?? '')}</td></tr>
               </table>
               <div class="sec-title">Appointment</div>
               <table>
@@ -127,10 +147,10 @@ export async function POST(req: NextRequest) {
                 <tr><td>Date</td><td>${formattedDate}</td></tr>
                 <tr><td>Drop-off time</td><td>${dropoff_time}</td></tr>
                 ${duration_hours ? `<tr><td>Est. duration</td><td>${duration_hours} hours</td></tr>` : ''}
-                ${addons.map(a => `<tr><td>Add-on</td><td>${a.name} (+$${a.price.toFixed(2)})</td></tr>`).join('')}
+                ${addons.map(a => `<tr><td>Add-on</td><td>${escapeHtml(a.name)} (+$${a.price.toFixed(2)})</td></tr>`).join('')}
                 <tr class="price"><td>Quoted price</td><td>$${totalPrice.toFixed(2)}*</td></tr>
               </table>
-              ${special_notes ? `<div class="sec-title">Your notes</div><p style="background:#f9f9f9;border-left:3px solid #ddd;padding:12px 16px;font-size:14px;color:#555">${special_notes}</p>` : ''}
+              ${safeNotes ? `<div class="sec-title">Your notes</div><p style="background:#f9f9f9;border-left:3px solid #ddd;padding:12px 16px;font-size:14px;color:#555">${safeNotes}</p>` : ''}
               <div class="cta">
                 <a href="${process.env.NEXT_PUBLIC_APP_URL}/vehicles" class="btn">View My Bookings</a>
               </div>
