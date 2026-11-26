@@ -137,17 +137,6 @@ export default async function HomePage() {
       </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-8 px-6 text-center text-gray-600 text-sm">
-        <p>© {new Date().getFullYear()} The Detail Bureau. All rights reserved.</p>
-        <div className="flex justify-center gap-6 mt-3">
-          <Link href="/about" className="hover:text-black transition-colors">About</Link>
-          <Link href="/packages" className="hover:text-black transition-colors">Packages</Link>
-          <Link href="/gallery" className="hover:text-black transition-colors">Gallery</Link>
-          <Link href="/reviews" className="hover:text-black transition-colors">Reviews</Link>
-          <Link href="/faqs" className="hover:text-black transition-colors">FAQs</Link>
-        </div>
-      </footer>
     </div>
   )
 }
