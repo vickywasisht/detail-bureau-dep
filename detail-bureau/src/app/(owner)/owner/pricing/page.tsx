@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import DataState from '@/components/DataState'
 
 interface Pkg { slug: string; name: string; subtitle: string; description: string }
 interface Price {
@@ -24,38 +25,58 @@ export default function OwnerPricingPage() {
   const [draft, setDraft] = useState(orig)
   const [addons, setAddons] = useState<Addon[]>([])
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [modal, setModal] = useState<{ id: string | null } | null>(null)
   const [addonForm, setAddonForm] = useState(emptyAddon)
   const [modalError, setModalError] = useState('')
 
   const loadTiers = async () => {
-    const res = await fetch('/api/owner/pricing')
-    if (!res.ok) return
-    const data = await res.json()
-    setOrig(data)
-    setDraft(data)
+    try {
+      const res = await fetch('/api/owner/pricing')
+      if (!res.ok) throw new Error('Could not reload service tiers.')
+      const data: { packages: Pkg[]; pricing: Price[] } = await res.json()
+      setOrig(data)
+      setDraft(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not reload service tiers.')
+    }
   }
   const loadAddons = async () => {
-    const res = await fetch('/api/owner/addons')
-    if (res.ok) setAddons(await res.json())
+    try {
+      const res = await fetch('/api/owner/addons')
+      if (!res.ok) throw new Error('Could not reload add-on services.')
+      const data: Addon[] = await res.json()
+      setAddons(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not reload add-on services.')
+    }
   }
   useEffect(() => {
     let stale = false
     const tiersRequest = fetch('/api/owner/pricing')
-      .then(async response => response.ok ? response.json() : null)
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load service tiers.')
+        return response.json()
+      })
       .then(data => {
-        if (stale || !data) return
+        if (stale) return
         setOrig(data)
         setDraft(data)
       })
     const addonsRequest = fetch('/api/owner/addons')
-      .then(async response => response.ok ? response.json() : null)
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load add-on services.')
+        return response.json()
+      })
       .then(data => {
-        if (!stale && data) setAddons(data)
+        if (!stale) setAddons(data)
       })
     Promise.all([tiersRequest, addonsRequest]).catch(error => {
-      if (!stale) setError(error instanceof Error ? error.message : 'Could not load pricing.')
+      if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load pricing.')
+    }).finally(() => {
+      if (!stale) setLoading(false)
     })
 
     return () => { stale = true }
@@ -146,6 +167,17 @@ export default function OwnerPricingPage() {
 
       {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
+      {loading ? (
+        <DataState kind="loading" title="Loading service menu..." />
+      ) : loadError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load the service menu."
+          description={loadError}
+          action={<button onClick={() => window.location.reload()} className="ui-button ui-button--secondary">Try again</button>}
+        />
+      ) : (
+      <>
       {/* Service tiers */}
       <section className="space-y-4">
         <h2 className="text-xl font-bold text-foreground">Service tiers</h2>
@@ -172,7 +204,9 @@ export default function OwnerPricingPage() {
           )}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        {tiers.length === 0 ? (
+          <DataState kind="empty" title="No service tiers available" description="Service packages will appear here once they are configured." />
+        ) : <div className="grid gap-4 lg:grid-cols-3">
           {tiers.map(p => (
             <div key={p.slug} className={`dashboard-card dashboard-card--${p.slug === 'basic' ? 'sky' : p.slug === 'value' ? 'violet' : 'amber'} space-y-4 p-5`}>
               <div>
@@ -229,7 +263,7 @@ export default function OwnerPricingPage() {
               </table>
             </div>
           ))}
-        </div>
+        </div>}
       </section>
 
       {/* Add-ons */}
@@ -241,7 +275,9 @@ export default function OwnerPricingPage() {
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-border">
+        {addons.length === 0 ? (
+          <DataState kind="empty" title="No add-ons yet" description="Add-on services you create will appear here." />
+        ) : <div className="overflow-x-auto rounded-xl border border-border">
           <table className="dashboard-table min-w-[640px] text-left text-sm">
             <thead>
               <tr>
@@ -263,15 +299,12 @@ export default function OwnerPricingPage() {
                 </td>
               </tr>
             ))}
-            {addons.length === 0 && (
-              <tr>
-                <td colSpan={4} className="p-8 text-center text-text-muted">No add-ons yet.</td>
-              </tr>
-            )}
             </tbody>
           </table>
-        </div>
+        </div>}
       </section>
+      </>
+      )}
 
       {modal && (
         <div

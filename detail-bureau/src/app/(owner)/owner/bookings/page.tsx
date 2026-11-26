@@ -5,6 +5,7 @@ import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
 import { type PaymentStatus } from '@/lib/payments'
 import { PaymentStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface Booking {
   id: string
@@ -56,25 +57,51 @@ export default function OwnerBookingsPage() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const load = async () => {
-    const [b, e] = await Promise.all([fetch('/api/owner/bookings'), fetch('/api/owner/employees')])
-    if (b.ok) setBookings(await b.json())
-    if (e.ok) setEmployees(await e.json())
+    setLoading(true)
+    setLoadError('')
+    try {
+      const [bookingResponse, employeeResponse] = await Promise.all([
+        fetch('/api/owner/bookings'),
+        fetch('/api/owner/employees'),
+      ])
+      if (!bookingResponse.ok || !employeeResponse.ok) throw new Error('Could not load bookings and team members.')
+      const bookingData: unknown = await bookingResponse.json()
+      const employeeData: unknown = await employeeResponse.json()
+      if (!Array.isArray(bookingData) || !Array.isArray(employeeData)) {
+        throw new Error('Booking data could not be displayed.')
+      }
+      setBookings(bookingData)
+      setEmployees(employeeData)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not load bookings.')
+    } finally {
+      setLoading(false)
+    }
   }
   useEffect(() => {
     let stale = false
     Promise.all([fetch('/api/owner/bookings'), fetch('/api/owner/employees')])
       .then(async ([bookingResponse, employeeResponse]) => {
-        const bookingData = bookingResponse.ok ? await bookingResponse.json() : null
-        const employeeData = employeeResponse.ok ? await employeeResponse.json() : null
+        if (!bookingResponse.ok || !employeeResponse.ok) throw new Error('Could not load bookings and team members.')
+        const bookingData: unknown = await bookingResponse.json()
+        const employeeData: unknown = await employeeResponse.json()
+        if (!Array.isArray(bookingData) || !Array.isArray(employeeData)) {
+          throw new Error('Booking data could not be displayed.')
+        }
         if (stale) return
-        if (bookingData) setBookings(bookingData)
-        if (employeeData) setEmployees(employeeData)
+        setBookings(bookingData)
+        setEmployees(employeeData)
       })
       .catch(error => {
-        if (!stale) setError(error instanceof Error ? error.message : 'Could not load bookings.')
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load bookings.')
+      })
+      .finally(() => {
+        if (!stale) setLoading(false)
       })
 
     return () => { stale = true }
@@ -174,6 +201,22 @@ export default function OwnerBookingsPage() {
 
       {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
+      {loading ? (
+        <DataState kind="loading" title="Loading bookings..." />
+      ) : loadError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load bookings."
+          description={loadError}
+          action={<button onClick={load} className="ui-button ui-button--secondary">Try again</button>}
+        />
+      ) : visible.length === 0 ? (
+        <DataState
+          kind="empty"
+          title={bookings.length === 0 ? 'No bookings yet' : 'No bookings match these filters'}
+          description={bookings.length === 0 ? 'New customer appointments will appear here.' : 'Try adjusting the status or search.'}
+        />
+      ) : (
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="dashboard-table min-w-[1150px] text-left text-sm">
           <thead>
@@ -259,16 +302,10 @@ export default function OwnerBookingsPage() {
                 </tr>
               )
             })}
-            {visible.length === 0 && (
-              <tr>
-                <td colSpan={9} className="p-8 text-center text-text-muted">
-                  {bookings.length === 0 ? 'No bookings yet.' : 'No bookings match your filters.'}
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   )
 }

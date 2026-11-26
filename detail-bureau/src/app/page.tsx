@@ -16,12 +16,25 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const [{ data: info }, { data: rows }, reviewSummary, topReviews] = await Promise.all([
+  const [packageResult, pricingResult, reviewSummaryResult, topReviewsResult] = await Promise.all([
     adminClient.from('service_packages').select('slug, description'),
     adminClient.from('service_pricing').select('package_slug, price'),
-    getReviewSummary(),
-    getReviews({ minRating: 5, limit: 3 }), // recent five-star reviews
+    getReviewSummary()
+      .then(data => ({ data, error: false as const }))
+      .catch(() => ({ data: null, error: true as const })),
+    getReviews({ minRating: 5, limit: 3 })
+      .then(data => ({ data, error: false as const }))
+      .catch(() => ({ data: null, error: true as const })),
   ])
+  const info = packageResult.data
+  const rows = pricingResult.data
+  const reviewSummary = reviewSummaryResult.data ?? {
+    count: 0,
+    average: 0,
+    distribution: [5, 4, 3, 2, 1].map(star => ({ star, count: 0 })),
+  }
+  const topReviews = topReviewsResult.data ?? []
+  const reviewsError = reviewSummaryResult.error || topReviewsResult.error
   const fromPrice = (slug: string, fallback: number) => {
     const prices = rows?.filter(r => r.package_slug === slug).map(r => Number(r.price)) ?? []
     return prices.length ? Math.min(...prices) : fallback
@@ -75,6 +88,11 @@ export default async function HomePage() {
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-black mb-4">Our Packages</h2>
           <p className="text-gray-500 text-center mb-12">Pricing varies by vehicle type. Final price confirmed at drop-off.</p>
+          {(packageResult.error || pricingResult.error) && (
+            <div role="status" className="ui-alert ui-alert--warning mb-8 text-center">
+              Live package details are temporarily unavailable, so these default estimates are shown.
+            </div>
+          )}
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { name: 'Basic', subtitle: 'Express Shine', price: `From $${fromPrice('basic', 120)}`, desc: describe('basic', 'Essential detailing for regular maintenance and light cleaning needs.'), color: 'border-gray-200' },
@@ -122,7 +140,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <ReviewsSection summary={reviewSummary} reviews={topReviews} />
+      <ReviewsSection summary={reviewSummary} reviews={topReviews} hasError={reviewsError} />
 
       {/* CTA */}
       <section className="bg-black text-white py-20 px-6 text-center">

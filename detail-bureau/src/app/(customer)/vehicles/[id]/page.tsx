@@ -4,6 +4,7 @@ import Link from 'next/link'
 import ServiceDetailsButton from '@/components/ServiceDetails'
 import BookingPayment from '@/components/BookingPayment'
 import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 import type { PaymentStatus } from '@/lib/payments'
 
 const PACKAGE_LABELS: Record<string, string> = {
@@ -42,16 +43,19 @@ export default async function VehicleDetailPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: vehicle } = await supabase
+  const { data: vehicle, error: vehicleError } = await supabase
     .from('vehicles')
     .select('*')
     .eq('id', id)
     .eq('customer_id', user.id)
     .single()
 
+  if (vehicleError && vehicleError.code !== 'PGRST116') {
+    return <DataState kind="error" title="We couldn’t load this vehicle." description="Please try again in a moment." />
+  }
   if (!vehicle) notFound()
 
-  const { data: bookings } = await supabase
+  const { data: bookings, error: bookingsError } = await supabase
     .from('bookings')
     .select('*')
     .eq('vehicle_id', id)
@@ -67,9 +71,9 @@ export default async function VehicleDetailPage({
 
   // which completed bookings already have a review?
   const historyIds = history.map((b: Booking) => b.id)
-  const { data: reviewed } = historyIds.length
+  const { data: reviewed, error: reviewsError } = historyIds.length
     ? await supabase.from('reviews').select('booking_id').in('booking_id', historyIds)
-    : { data: [] as { booking_id: string }[] }
+    : { data: [] as { booking_id: string }[], error: null }
   const reviewedIds = new Set((reviewed ?? []).map(r => r.booking_id))
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
@@ -113,6 +117,14 @@ export default async function VehicleDetailPage({
         </div>
       </div>
 
+      {bookingsError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load this vehicle’s bookings."
+          description="Please try again in a moment."
+        />
+      ) : (
+      <>
       {/* Scheduled Bookings */}
       <section className="mb-10">
         <h2 className="mb-4 border-b border-violet-100 pb-2 text-xl font-bold text-foreground">
@@ -191,6 +203,14 @@ export default async function VehicleDetailPage({
         <h2 className="mb-4 border-b border-violet-100 pb-2 text-xl font-bold text-foreground">
           Service History
         </h2>
+        {reviewsError && (
+          <DataState
+            kind="error"
+            title="Review status is unavailable."
+            description="You can still view your history, but review links are temporarily hidden."
+            className="mb-4"
+          />
+        )}
         {history.length > 0 ? (
           <div className="overflow-x-auto rounded-xl border border-gray-200">
             <table className="dashboard-table min-w-[640px] text-sm">
@@ -225,7 +245,9 @@ export default async function VehicleDetailPage({
                           : '—'}
                     </td>
                     <td className="py-3 text-right space-x-3">
-                      {reviewedIds.has(booking.id) ? (
+                      {reviewsError ? (
+                        <span className="text-sm text-text-muted">Review unavailable</span>
+                      ) : reviewedIds.has(booking.id) ? (
                         <span className="text-gray-500 text-sm">Reviewed ✓</span>
                       ) : (
                         <Link href={`/write-review?booking_id=${booking.id}`} className="text-blue-600 hover:text-blue-700 text-sm">
@@ -243,13 +265,11 @@ export default async function VehicleDetailPage({
             </table>
           </div>
         ) : (
-          <div className="dashboard-empty">
-            <div className="mb-3 text-4xl" aria-hidden="true">🌟</div>
-            <p className="font-semibold text-foreground">Your first shine is still ahead</p>
-            <p className="mt-1 text-sm text-text-muted">Completed details will appear here.</p>
-          </div>
+          <DataState kind="empty" title="Your first shine is still ahead" description="Completed details will appear here." />
         )}
       </section>
+      </>
+      )}
     </div>
   )
 }

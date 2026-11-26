@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface BookingDetail {
   id: string
@@ -50,56 +51,76 @@ export default function EmployeeBookingDetailPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [notFound, setNotFound] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
+    let stale = false
     fetch(`/api/employee/bookings/${id}`)
       .then(async r => {
-        if (!r.ok) {
-          setNotFound(true)
+        if (r.status === 404) {
+          if (!stale) setNotFound(true)
           return null
         }
+        if (!r.ok) throw new Error('Could not load booking details.')
         return r.json() as Promise<BookingDetail>
       })
       .then(data => {
-        if (!data) return
+        if (!data || stale) return
         setBooking(data)
         setStatus(data.booking_status)
         setFinalPrice(data.final_price ? String(data.final_price) : '')
       })
+      .catch(error => {
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load booking details.')
+      })
+    return () => { stale = true }
   }, [id])
 
   const handleSave = async () => {
     setSaving(true)
-    const res = await fetch(`/api/employee/bookings/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        booking_status: status,
-        final_price: finalPrice ? Number(finalPrice) : undefined,
-      }),
-    })
-    if (res.ok) {
+    setSaveError('')
+    try {
+      const res = await fetch(`/api/employee/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_status: status,
+          final_price: finalPrice ? Number(finalPrice) : undefined,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error ?? 'Could not save booking changes.')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Could not save booking changes.')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   if (notFound) return (
-    <div className="dashboard-empty mx-auto max-w-2xl">
-      <div className="mb-3 text-4xl" aria-hidden="true">🔎</div>
-      <p className="mb-4 font-semibold text-foreground">This booking isn&apos;t assigned to you.</p>
-      <Link href="/employee/bookings" className="text-sm font-semibold text-primary underline underline-offset-2">
-        ← My Bookings
-      </Link>
-    </div>
+    <DataState
+      kind="empty"
+      title="This booking isn’t assigned to you."
+      action={<Link href="/employee/bookings" className="ui-button ui-button--secondary">← My Bookings</Link>}
+      className="mx-auto max-w-2xl"
+    />
+  )
+
+  if (loadError) return (
+    <DataState
+      kind="error"
+      title="We couldn’t load this booking."
+      description={loadError}
+      action={<button onClick={() => window.location.reload()} className="ui-button ui-button--secondary">Try again</button>}
+      className="mx-auto max-w-2xl"
+    />
   )
 
   if (!booking) return (
-    <div className="dashboard-empty mx-auto max-w-2xl" role="status">
-      <div className="mb-3 text-4xl" aria-hidden="true">✨</div>
-      <p className="font-semibold text-foreground">Loading your booking...</p>
-    </div>
+    <DataState kind="loading" title="Loading your booking..." className="mx-auto max-w-2xl" />
   )
 
   return (
@@ -211,6 +232,7 @@ export default function EmployeeBookingDetailPage() {
               {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save changes'}
             </button>
             {saved && <p role="status" className="ui-alert ui-alert--success">Booking details saved.</p>}
+            {saveError && <p role="alert" className="ui-alert ui-alert--error">{saveError}</p>}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Stars from '@/components/Stars'
+import DataState from '@/components/DataState'
 
 interface Review {
   id: string
@@ -23,21 +24,42 @@ export default function OwnerReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [form, setForm] = useState(empty)
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const load = async () => {
-    const res = await fetch('/api/owner/reviews')
-    if (res.ok) setReviews(await res.json())
+    setLoading(true)
+    setLoadError('')
+    try {
+      const res = await fetch('/api/owner/reviews')
+      if (!res.ok) throw new Error('Could not load reviews.')
+      const data: unknown = await res.json()
+      if (!Array.isArray(data)) throw new Error('Review data could not be displayed.')
+      setReviews(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not load reviews.')
+    } finally {
+      setLoading(false)
+    }
   }
   useEffect(() => {
     let stale = false
     fetch('/api/owner/reviews')
-      .then(async response => response.ok ? response.json() : null)
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load reviews.')
+        const data: unknown = await response.json()
+        if (!Array.isArray(data)) throw new Error('Review data could not be displayed.')
+        return data
+      })
       .then(data => {
-        if (!stale && data) setReviews(data)
+        if (!stale) setReviews(data)
       })
       .catch(error => {
-        if (!stale) setError(error instanceof Error ? error.message : 'Could not load reviews.')
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load reviews.')
+      })
+      .finally(() => {
+        if (!stale) setLoading(false)
       })
 
     return () => { stale = true }
@@ -99,6 +121,18 @@ export default function OwnerReviewsPage() {
         </button>
       </form>
 
+      {loading ? (
+        <DataState kind="loading" title="Loading reviews..." />
+      ) : loadError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load reviews."
+          description={loadError}
+          action={<button onClick={load} className="ui-button ui-button--secondary">Try again</button>}
+        />
+      ) : reviews.length === 0 ? (
+        <DataState kind="empty" title="No reviews yet" description="Customer reviews will appear here when they come in." />
+      ) : (
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="dashboard-table min-w-[760px] text-left text-sm">
           <thead>
@@ -135,12 +169,10 @@ export default function OwnerReviewsPage() {
                 </td>
               </tr>
             ))}
-            {reviews.length === 0 && (
-              <tr><td colSpan={6} className="p-8 text-center text-text-muted">No reviews yet.</td></tr>
-            )}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   )
 }

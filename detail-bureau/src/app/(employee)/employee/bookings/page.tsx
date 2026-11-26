@@ -3,6 +3,7 @@ import { getEmployeeFromToken } from '@/lib/employee-auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface BookingListItem {
   id: string
@@ -19,7 +20,7 @@ export default async function EmployeeBookingsPage() {
   const employee = await getEmployeeFromToken()
   if (!employee) redirect('/employee/login')
 
-  const { data: bookings } = await adminClient
+  const { data: bookings, error: bookingsError } = await adminClient
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email)')
     .eq('employee_id', employee.id)
@@ -32,8 +33,15 @@ export default async function EmployeeBookingsPage() {
         <h1 className="text-3xl font-bold text-foreground">My Bookings</h1>
         <p className="mt-1 text-text-muted">Every appointment is a chance to leave a great impression.</p>
       </div>
-      <div className="space-y-3">
-        {bookings?.map((b: BookingListItem, index) => (
+      {bookingsError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load your bookings."
+          description="Please try again in a moment."
+        />
+      ) : bookings && bookings.length > 0 ? (
+        <div className="space-y-3">
+        {bookings.map((b: BookingListItem, index) => (
           <Link
             key={b.id}
             href={`/employee/bookings/${b.id}`}
@@ -63,7 +71,10 @@ export default async function EmployeeBookingsPage() {
             </div>
           </Link>
         ))}
-      </div>
+        </div>
+      ) : (
+        <DataState kind="empty" title="No bookings yet" description="Appointments assigned to you will appear here." />
+      )}
     </div>
   )
 }

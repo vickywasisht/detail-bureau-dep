@@ -4,6 +4,7 @@ import Navbar from '@/components/navbar'
 import Stars from '@/components/Stars'
 import ReviewCard from '@/components/ReviewCard'
 import { getReviewSummary, getReviews } from '@/lib/reviews'
+import DataState from '@/components/DataState'
 
 export const metadata: Metadata = {
   title: 'Customer Reviews | The Detail Bureau',
@@ -15,7 +16,15 @@ export const dynamic = 'force-dynamic'
 
 export default async function ReviewsPage({ searchParams }: { searchParams: Promise<{ thanks?: string }> }) {
   const { thanks } = await searchParams
-  const [summary, reviews] = await Promise.all([getReviewSummary(), getReviews({ limit: 50 })])
+  const [summaryResult, reviewsResult] = await Promise.allSettled([
+    getReviewSummary(),
+    getReviews({ limit: 50 }),
+  ])
+  const hasError = summaryResult.status === 'rejected' || reviewsResult.status === 'rejected'
+  const summary = summaryResult.status === 'fulfilled'
+    ? summaryResult.value
+    : { count: 0, average: 0, distribution: [] }
+  const reviews = reviewsResult.status === 'fulfilled' ? reviewsResult.value : []
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,7 +39,14 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
           </div>
         )}
 
-        {summary.count > 0 ? (
+        {hasError ? (
+          <DataState
+            kind="error"
+            title="We couldn’t load customer reviews."
+            description="Please refresh the page to try again."
+            className="mx-auto max-w-2xl"
+          />
+        ) : summary.count > 0 ? (
           <>
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center gap-8">
               <div className="text-center sm:w-48">

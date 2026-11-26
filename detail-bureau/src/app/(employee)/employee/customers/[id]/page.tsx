@@ -5,6 +5,7 @@ import { getEmployeeFromToken } from '@/lib/employee-auth'
 import ServiceDetailsButton from '@/components/ServiceDetails'
 import CustomerNotes from '@/components/CustomerNotes'
 import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface Vehicle {
   id: string
@@ -43,17 +44,23 @@ export default async function CustomerProfilePage({
   const employee = await getEmployeeFromToken()
   if (!employee) redirect('/employee-login')
 
-  const { data: customer } = await adminClient
+  const { data: customer, error: customerError } = await adminClient
     .from('customers')
     .select('id, first_name, last_name, email, phone, created_at')
     .eq('id', id)
     .maybeSingle()
+  if (customerError) {
+    return <DataState kind="error" title="We couldn’t load this customer." description="Please try again in a moment." />
+  }
   if (!customer) notFound()
 
-  const [{ data: vehicleData }, { data: bookingData }] = await Promise.all([
+  const [{ data: vehicleData, error: vehiclesError }, { data: bookingData, error: bookingsError }] = await Promise.all([
     adminClient.from('vehicles').select('*').eq('customer_id', id).order('created_at'),
     adminClient.from('bookings').select('*').eq('customer_id', id).order('service_date', { ascending: false }),
   ])
+  if (vehiclesError || bookingsError) {
+    return <DataState kind="error" title="We couldn’t load this customer’s history." description="Please try again in a moment." />
+  }
   const vehicles = (vehicleData ?? []) as Vehicle[]
   const bookings = (bookingData ?? []) as Booking[]
 
@@ -164,10 +171,7 @@ export default async function CustomerProfilePage({
             </table>
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-violet-200 bg-violet-50/60 p-6 text-center">
-            <p className="font-semibold text-foreground">No bookings yet</p>
-            <p className="mt-1 text-sm text-text-muted">Service history will appear here after the first appointment.</p>
-          </div>
+          <DataState kind="empty" title="No bookings yet" description="Service history will appear here after the first appointment." />
         )}
       </section>
 

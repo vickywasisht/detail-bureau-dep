@@ -113,6 +113,23 @@ body {
   color: var(--warning);
 }
 
+.ui-spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  color: var(--primary);
+  animation: ui-spin 750ms linear infinite;
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .ui-button {
   display: inline-flex;
   min-height: 2.75rem;
@@ -495,6 +512,10 @@ a.dashboard-card:hover {
   }
 
   .dashboard-enter {
+    animation: none;
+  }
+
+  .ui-spinner {
     animation: none;
   }
 

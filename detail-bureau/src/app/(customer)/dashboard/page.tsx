@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import DataState from '@/components/DataState'
 
 
 export default async function DashboardPage() {
@@ -8,7 +9,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: vehicles } = await supabase
+  const { data: vehicles, error: vehiclesError } = await supabase
     .from('vehicles')
     .select('*')
     .eq('customer_id', user.id)
@@ -30,7 +31,14 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      {vehicles && vehicles.length > 0 ? (
+      {vehiclesError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load your vehicles."
+          description="Please try again in a moment."
+          action={<a href="/dashboard" className="ui-button ui-button--secondary">Try again</a>}
+        />
+      ) : vehicles && vehicles.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {vehicles.map((vehicle, index) => (
             <Link
@@ -57,17 +65,12 @@ export default async function DashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="dashboard-empty">
-          <div className="mb-4 text-4xl" aria-hidden="true">🚗</div>
-          <p className="mb-2 text-lg font-semibold text-foreground">Your garage is ready for its first ride</p>
-          <p className="mb-6 text-sm text-text-muted">Add a vehicle to start booking and tracking its care.</p>
-          <Link
-            href="/vehicles/add"
-            className="dashboard-action"
-          >
-            <span aria-hidden="true">＋</span> Add a vehicle
-          </Link>
-        </div>
+        <DataState
+          kind="empty"
+          title="Your garage is ready for its first ride"
+          description="Add a vehicle to start booking and tracking its care."
+          action={<Link href="/vehicles/add" className="dashboard-action"><span aria-hidden="true">＋</span> Add a vehicle</Link>}
+        />
       )}
     </div>
   )

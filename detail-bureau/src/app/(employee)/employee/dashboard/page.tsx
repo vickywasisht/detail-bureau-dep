@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import CustomerSearch from '@/components/CustomerSearch'
 import { BookingStatusBadge } from '@/components/StatusBadge'
+import DataState from '@/components/DataState'
 
 interface BookingListItem {
   id: string
@@ -23,14 +24,14 @@ export default async function EmployeeDashboardPage() {
   const employee = await getEmployeeFromToken()
   if (!employee) redirect('/employee/login')
 
-  const { data: bookings } = await adminClient
+  const { data: bookings, error: bookingsError } = await adminClient
     .from('bookings')
     .select('*, vehicles(*), customers(first_name, last_name, email)')
     .eq('employee_id', employee.id)
     .in('booking_status', ['pending', 'confirmed', 'in_progress'])
     .order('service_date', { ascending: true })
 
-  const { data: stats } = await adminClient
+  const { data: stats, error: statsError } = await adminClient
     .from('bookings')
     .select('booking_status')
     .eq('employee_id', employee.id)
@@ -55,30 +56,45 @@ export default async function EmployeeDashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        {[
-          { label: 'Pending', count: counts.pending, accent: 'amber', icon: '⏳' },
-          { label: 'Confirmed', count: counts.confirmed, accent: 'green', icon: '✅' },
-          { label: 'In Progress', count: counts.in_progress, accent: 'blue', icon: '✨' },
-          { label: 'Completed', count: counts.completed, accent: 'violet', icon: '🏁' },
-        ].map((s, index) => (
-          <div
-            key={s.label}
-            className={`dashboard-stat dashboard-stat--${s.accent} dashboard-enter`}
-            style={{ animationDelay: `${index * 60}ms` }}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="dashboard-stat__label">{s.label}</p>
-              <span aria-hidden="true" className="text-xl">{s.icon}</span>
+      {statsError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load your booking stats."
+          description="Please try again in a moment."
+          className="mb-10"
+        />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {[
+            { label: 'Pending', count: counts.pending, accent: 'amber', icon: '⏳' },
+            { label: 'Confirmed', count: counts.confirmed, accent: 'green', icon: '✅' },
+            { label: 'In Progress', count: counts.in_progress, accent: 'blue', icon: '✨' },
+            { label: 'Completed', count: counts.completed, accent: 'violet', icon: '🏁' },
+          ].map((s, index) => (
+            <div
+              key={s.label}
+              className={`dashboard-stat dashboard-stat--${s.accent} dashboard-enter`}
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="dashboard-stat__label">{s.label}</p>
+                <span aria-hidden="true" className="text-xl">{s.icon}</span>
+              </div>
+              <p className="dashboard-stat__value">{s.count}</p>
             </div>
-            <p className="dashboard-stat__value">{s.count}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Active bookings */}
       <h2 className="mb-4 text-xl font-bold text-foreground">Active Bookings</h2>
-      {bookings && bookings.length > 0 ? (
+      {bookingsError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load your active bookings."
+          description="Please try again in a moment."
+        />
+      ) : bookings && bookings.length > 0 ? (
         <div className="space-y-3">
           {bookings.map((b: BookingListItem, index) => (
             <Link
@@ -107,11 +123,7 @@ export default async function EmployeeDashboardPage() {
           ))}
         </div>
       ) : (
-        <div className="dashboard-empty">
-          <div className="mb-3 text-4xl" aria-hidden="true">🧽</div>
-          <p className="font-semibold text-foreground">All caught up!</p>
-          <p className="mt-1 text-sm text-text-muted">No active bookings right now.</p>
-        </div>
+        <DataState kind="empty" title="All caught up!" description="No active bookings right now." />
       )}
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import DataState from '@/components/DataState'
 
 interface Employee {
   id: string
@@ -18,6 +19,8 @@ const inputClass = 'ui-input'
 export default function OwnerEmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [modalError, setModalError] = useState('')
   const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
@@ -27,18 +30,37 @@ export default function OwnerEmployeesPage() {
   const [savingChanges, setSavingChanges] = useState(false)
 
   const load = async () => {
-    const res = await fetch('/api/owner/employees')
-    if (res.ok) setEmployees(await res.json())
+    setLoading(true)
+    setLoadError('')
+    try {
+      const res = await fetch('/api/owner/employees')
+      if (!res.ok) throw new Error('Could not load employees.')
+      const data: unknown = await res.json()
+      if (!Array.isArray(data)) throw new Error('Employee data could not be displayed.')
+      setEmployees(data)
+    } catch (loadError) {
+      setLoadError(loadError instanceof Error ? loadError.message : 'Could not load employees.')
+    } finally {
+      setLoading(false)
+    }
   }
   useEffect(() => {
     let stale = false
     fetch('/api/owner/employees')
-      .then(async response => response.ok ? response.json() : null)
+      .then(async response => {
+        if (!response.ok) throw new Error('Could not load employees.')
+        const data: unknown = await response.json()
+        if (!Array.isArray(data)) throw new Error('Employee data could not be displayed.')
+        return data
+      })
       .then(data => {
-        if (!stale && data) setEmployees(data)
+        if (!stale) setEmployees(data)
       })
       .catch(error => {
-        if (!stale) setError(error instanceof Error ? error.message : 'Could not load employees.')
+        if (!stale) setLoadError(error instanceof Error ? error.message : 'Could not load employees.')
+      })
+      .finally(() => {
+        if (!stale) setLoading(false)
       })
 
     return () => { stale = true }
@@ -166,6 +188,25 @@ export default function OwnerEmployeesPage() {
 
       {error && <p role="alert" className="ui-alert ui-alert--error">{error}</p>}
 
+      {loading ? (
+        <DataState kind="loading" title="Loading your team..." />
+      ) : loadError ? (
+        <DataState
+          kind="error"
+          title="We couldn’t load employees."
+          description={loadError}
+          action={<button onClick={load} className="ui-button ui-button--secondary">Try again</button>}
+        />
+      ) : filtered.length === 0 ? (
+        <DataState
+          kind="empty"
+          title={employees.length === 0 ? 'No employees yet' : 'No matches found'}
+          description={employees.length === 0 ? 'Create an employee account to build your team.' : 'Try a different search term.'}
+          action={employees.length === 0 ? (
+            <button onClick={() => setShowModal(true)} className="dashboard-action">Create employee</button>
+          ) : undefined}
+        />
+      ) : (
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="dashboard-table min-w-[680px] text-left text-sm">
           <thead>
@@ -215,16 +256,10 @@ export default function OwnerEmployeesPage() {
               </tr>
             )
           })}
-          {filtered.length === 0 && (
-            <tr>
-              <td colSpan={5} className="p-8 text-center text-text-muted">
-                {employees.length === 0 ? 'No employees yet.' : 'No employees match your search.'}
-              </td>
-            </tr>
-          )}
           </tbody>
         </table>
       </div>
+      )}
 
       {showModal && (
         <div
